@@ -115,12 +115,7 @@
     .insight-header { font-size: 19px; font-weight: 700; color: #0f172a; margin-bottom: 2px; }
     .insight-sub    { font-size: 12px; color: #64748b; margin-bottom: 18px; }
 
-    /* KPI row */
-    .kpi-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-bottom: 18px; }
-    .kpi-card { background: #fff; border-radius: 10px; padding: 12px 14px; box-shadow: 0 1px 3px rgba(0,0,0,.07); }
-    .kpi-value { font-size: 22px; font-weight: 800; color: #0d3b66; line-height: 1; }
-    .kpi-label { font-size: 10px; color: #64748b; margin-top: 3px; font-weight: 600; text-transform: uppercase; letter-spacing: .4px; }
-    .kpi-sub   { font-size: 10px; color: #94a3b8; margin-top: 1px; }
+    /* KPI row — removed */
 
     /* Chart rows */
     .chart-row { display: grid; gap: 14px; margin-bottom: 14px; }
@@ -305,15 +300,6 @@
   <div id="insight-inner">
     <div class="insight-header">Helsinki Bench Insights</div>
     <div class="insight-sub">District-level spatial analysis · Data: April 2026 · Population &amp; income: Statistics Finland Paavo 2023</div>
-
-    <!-- KPI row -->
-    <div class="kpi-grid">
-      <div class="kpi-card"><div class="kpi-value" id="kpi-total">–</div><div class="kpi-label">Benches</div><div class="kpi-sub" id="kpi-total-sub">filtered</div></div>
-      <div class="kpi-card"><div class="kpi-value" id="kpi-city">–</div><div class="kpi-label">City-registered</div><div class="kpi-sub">YLRE</div></div>
-      <div class="kpi-card"><div class="kpi-value" id="kpi-comm">–</div><div class="kpi-label">Community-mapped</div><div class="kpi-sub">OSM only</div></div>
-      <div class="kpi-card"><div class="kpi-value" id="kpi-nature">–</div><div class="kpi-label">Nature / Park</div><div class="kpi-sub">park setting</div></div>
-      <div class="kpi-card"><div class="kpi-value" id="kpi-waterfront">–</div><div class="kpi-label">Waterfront</div><div class="kpi-sub">within 200 m of sea</div></div>
-    </div>
 
     <!-- Row 1: Density ranking + mini map -->
     <div class="chart-row row-2-3">
@@ -592,17 +578,29 @@ function getFilteredBenches() {
 }
 
 function computeDistrictStats(filteredBenches) {
-  const countByDistrict = {};
+  const totByD = {}, cityByD = {}, commByD = {};
   for (const f of filteredBenches) {
     const d = f.properties.district;
-    if (d) countByDistrict[d] = (countByDistrict[d] || 0) + 1;
+    if (!d) continue;
+    totByD[d]  = (totByD[d]  || 0) + 1;
+    if (sourceCategory(f.properties.source) === 'city')
+      cityByD[d] = (cityByD[d] || 0) + 1;
+    else
+      commByD[d] = (commByD[d] || 0) + 1;
   }
   return districtStats.map(s => {
-    const count = countByDistrict[s.district] || 0;
+    const total = totByD[s.district]  || 0;
+    const city  = cityByD[s.district] || 0;
+    const comm  = commByD[s.district] || 0;
+    const area  = s.area_km2;
     return {
       ...s,
-      bench_count:   count,
-      bench_density: (s.area_km2 && count > 0) ? +(count / s.area_km2).toFixed(2) : 0,
+      bench_count:   total,
+      city_count_f:  city,
+      comm_count_f:  comm,
+      bench_density: (area && total > 0) ? +(total / area).toFixed(2) : 0,
+      city_density:  (area && city  > 0) ? +(city  / area).toFixed(2) : 0,
+      comm_density:  (area && comm  > 0) ? +(comm  / area).toFixed(2) : 0,
     };
   });
 }
@@ -728,18 +726,8 @@ function updateInsightCharts() {
   const filtered = getFilteredBenches();
   const fStats   = computeDistrictStats(filtered);
 
-  /* ── KPIs ──────────────────────────────────────────── */
-  const nCity      = filtered.filter(f=>sourceCategory(f.properties.source)==='city').length;
-  const nComm      = filtered.filter(f=>sourceCategory(f.properties.source)==='comm').length;
-  const nNature    = filtered.filter(f=>f.properties.is_nature).length;
-  const nWF        = filtered.filter(f=>f.properties.is_waterfront).length;
-  const dWithData  = fStats.filter(s=>s.bench_count>0).length;
-
-  document.getElementById('kpi-total').textContent     = filtered.length.toLocaleString();
-  document.getElementById('kpi-city').textContent      = nCity.toLocaleString();
-  document.getElementById('kpi-comm').textContent      = nComm.toLocaleString();
-  document.getElementById('kpi-nature').textContent    = nNature.toLocaleString();
-  document.getElementById('kpi-waterfront').textContent= nWF.toLocaleString();
+  /* ── Filter count badge ─────────────────────────────── */
+  const dWithData = fStats.filter(s => s.bench_count > 0).length;
   document.getElementById('ifc-count').textContent     = filtered.length.toLocaleString();
   document.getElementById('ifc-districts').textContent = dWithData;
 
@@ -749,10 +737,9 @@ function updateInsightCharts() {
     .sort((a,b) => densityMode==='top' ? b.bench_density-a.bench_density : a.bench_density-b.bench_density)
     .slice(0, 30);
 
-  const dlabels = sorted.map(s => s.district);
-  const dvalues = sorted.map(s => s.bench_density);
-  const barColor = densityMode==='top' ? '#3b82f6bb' : '#f97316bb';
-  const barColorHi = densityMode==='top' ? '#1d4ed8' : '#ea580c';
+  const dlabels      = sorted.map(s => s.district);
+  const cityValues   = sorted.map(s => s.city_density  || 0);
+  const commValues   = sorted.map(s => s.comm_density  || 0);
 
   destroyChart(chartDensity);
   const densCtx = document.getElementById('chart-density').getContext('2d');
@@ -760,9 +747,22 @@ function updateInsightCharts() {
     type: 'bar',
     data: {
       labels: dlabels,
-      datasets: [{ label: 'Benches / km²', data: dvalues,
-        backgroundColor: dvalues.map((_,i)=>i===0?barColorHi:barColor), borderRadius: 4,
-        minBarLength: 4 }]   // ensure tiny bars are still visible & hoverable
+      datasets: [
+        {
+          label: 'City-registered',
+          data: cityValues,
+          backgroundColor: '#3b82f6cc',
+          stack: 'density',
+          minBarLength: 3,
+        },
+        {
+          label: 'Community-mapped',
+          data: commValues,
+          backgroundColor: '#f97316cc',
+          stack: 'density',
+          minBarLength: 3,
+        },
+      ]
     },
     options: {
       responsive: true, maintainAspectRatio: false,
@@ -771,18 +771,29 @@ function updateInsightCharts() {
       },
       onHover: (evt, elements) => {
         const d = elements.length > 0 ? dlabels[elements[0].index] : null;
-        if (d !== hoveredDistrict) {
-          hoveredDistrict = d;
-          refreshMapStyles();
-        }
+        if (d !== hoveredDistrict) { hoveredDistrict = d; refreshMapStyles(); }
       },
       plugins: {
-        legend: { display: false },
-        tooltip: { callbacks: { label: ctx => `${ctx.parsed.y.toFixed(1)} benches/km² (n=${sorted[ctx.dataIndex].bench_count})` } }
+        legend: { position: 'bottom', labels: { font:{size:11}, boxWidth:14, padding:12 } },
+        tooltip: {
+          callbacks: {
+            title: ctx => ctx[0].label,
+            afterBody: ctx => {
+              const i = ctx[0].dataIndex;
+              const s = sorted[i];
+              return [
+                `Total: ${s.bench_density?.toFixed(1)} /km²  (n=${s.bench_count})`,
+                `City: ${s.city_density?.toFixed(1) ?? 0} /km²  (n=${s.city_count_f})`,
+                `Comm: ${s.comm_density?.toFixed(1) ?? 0} /km²  (n=${s.comm_count_f})`,
+              ];
+            },
+            label: () => null,  // suppress per-dataset lines; use afterBody instead
+          }
+        }
       },
       scales: {
-        x: { grid:{display:false}, ticks:{maxRotation:55,font:{size:10}} },
-        y: { grid:{color:GRID}, title:{display:true,text:'Benches / km²'} }
+        x: { stacked: true, grid:{display:false}, ticks:{maxRotation:55,font:{size:10}} },
+        y: { stacked: true, grid:{color:GRID}, title:{display:true,text:'Benches / km²'} }
       }
     }
   });
