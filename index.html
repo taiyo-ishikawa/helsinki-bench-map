@@ -411,6 +411,7 @@ let benchFeatures = [], districtStats = [], districtBoundaries = null;
 let insightFilters = { source: 'all', location: 'all' };
 let densityMode    = 'top';   // 'top' | 'bottom'
 let selectedDistrict = null;
+let hoveredDistrict  = null;   // transient hover highlight from chart
 
 // Chart instances
 let chartDensity = null, chartScatterPop = null, chartScatterInc = null;
@@ -607,23 +608,31 @@ function computeDistrictStats(filteredBenches) {
 }
 
 /* ════════════════════════════════════════════════════════
+   Mini map style helpers
+════════════════════════════════════════════════════════ */
+const STYLE_DEFAULT  = { fillColor: '#f1f5f9', fillOpacity: 0.6,  color: '#94a3b8', weight: 0.8 };
+const STYLE_SELECTED = { fillColor: '#bfdbfe', fillOpacity: 0.85, color: '#1d4ed8', weight: 2.5 };
+const STYLE_HOVER    = { fillColor: '#e0f2fe', fillOpacity: 0.8,  color: '#0284c7', weight: 1.8 };
+
+function refreshMapStyles() {
+  if (!geoJsonLayer) return;
+  geoJsonLayer.eachLayer(layer => {
+    const d = layer.feature.properties.district;
+    if      (d === hoveredDistrict)  layer.setStyle(STYLE_HOVER);
+    else if (d === selectedDistrict) layer.setStyle(STYLE_SELECTED);
+    else                             layer.setStyle(STYLE_DEFAULT);
+  });
+}
+
+/* ════════════════════════════════════════════════════════
    District selection (mini map + info card)
 ════════════════════════════════════════════════════════ */
 function selectDistrict(district, filteredStats) {
   selectedDistrict = district;
+  hoveredDistrict  = null;   // clear transient hover when clicking
 
-  // Highlight on mini map
-  if (geoJsonLayer) {
-    geoJsonLayer.eachLayer(layer => {
-      const d = layer.feature.properties.district;
-      if (d === district) {
-        layer.setStyle({ fillColor: '#bfdbfe', fillOpacity: 0.85, color: '#1d4ed8', weight: 2.5 });
-        try { insightMapInstance.fitBounds(layer.getBounds(), { padding: [16,16], maxZoom: 14 }); } catch(e){}
-      } else {
-        layer.setStyle({ fillColor: '#f1f5f9', fillOpacity: 0.6, color: '#94a3b8', weight: 0.8 });
-      }
-    });
-  }
+  // Highlight on mini map — no zoom, just restyle
+  refreshMapStyles();
 
   // Fill info card
   const stat = filteredStats
@@ -650,22 +659,21 @@ function initInsightMap() {
   L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', { maxZoom: 18 })
     .addTo(insightMapInstance);
 
-  const defaultStyle = { fillColor: '#f1f5f9', fillOpacity: 0.6, color: '#94a3b8', weight: 0.8 };
-  const hoverStyle   = { fillColor: '#e0f2fe', fillOpacity: 0.8, color: '#0284c7', weight: 1.5 };
-
   geoJsonLayer = L.geoJSON(districtBoundaries, {
-    style: defaultStyle,
+    style: STYLE_DEFAULT,
     onEachFeature: (feature, layer) => {
       const d = feature.properties.district;
       districtLayers[d] = layer;
 
       layer.on({
         mouseover: (e) => {
-          if (d !== selectedDistrict) layer.setStyle(hoverStyle);
+          hoveredDistrict = d;
+          refreshMapStyles();
           layer.bindTooltip(`<strong>${d}</strong>`, { sticky: true }).openTooltip(e.latlng);
         },
-        mouseout:  () => {
-          if (d !== selectedDistrict) layer.setStyle(defaultStyle);
+        mouseout: () => {
+          hoveredDistrict = null;
+          refreshMapStyles();
           layer.unbindTooltip();
         },
         click: () => {
@@ -753,12 +761,20 @@ function updateInsightCharts() {
     data: {
       labels: dlabels,
       datasets: [{ label: 'Benches / km²', data: dvalues,
-        backgroundColor: dvalues.map((_,i)=>i===0?barColorHi:barColor), borderRadius: 4 }]
+        backgroundColor: dvalues.map((_,i)=>i===0?barColorHi:barColor), borderRadius: 4,
+        minBarLength: 4 }]   // ensure tiny bars are still visible & hoverable
     },
     options: {
       responsive: true, maintainAspectRatio: false,
       onClick: (evt, elements) => {
         if (elements.length > 0) selectDistrict(dlabels[elements[0].index], fStats);
+      },
+      onHover: (evt, elements) => {
+        const d = elements.length > 0 ? dlabels[elements[0].index] : null;
+        if (d !== hoveredDistrict) {
+          hoveredDistrict = d;
+          refreshMapStyles();
+        }
       },
       plugins: {
         legend: { display: false },
@@ -818,6 +834,14 @@ function rebuildScatter(canvasId, stats, xKey, yKey, xLabel, yLabel) {
       onClick: (evt, elements) => {
         if (elements.length > 0 && elements[0].datasetIndex === 0) {
           selectDistrict(pts[elements[0].index].district, fStats);
+        }
+      },
+      onHover: (evt, elements) => {
+        const d = (elements.length > 0 && elements[0].datasetIndex === 0)
+          ? pts[elements[0].index].district : null;
+        if (d !== hoveredDistrict) {
+          hoveredDistrict = d;
+          refreshMapStyles();
         }
       },
       plugins: {
