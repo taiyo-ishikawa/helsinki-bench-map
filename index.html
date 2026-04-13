@@ -2,48 +2,124 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
   <title>Helsinki Bench Locations</title>
 
+  <!-- Map -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
   <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+  <!-- Charts -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
 
   <style>
+    /* ── Reset & base ─────────────────────────────────────── */
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #f1f5f9; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #f1f5f9;
+      height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
 
-    #header { background: #0d3b66; color: #fff; padding: 0 20px; height: 56px; display: flex; align-items: center; gap: 16px; flex-shrink: 0; box-shadow: 0 2px 6px rgba(0,0,0,.3); z-index: 1000; }
-    #header h1 { font-size: 17px; font-weight: 700; letter-spacing: .3px; white-space: nowrap; }
-    #header .subtitle { font-size: 12px; color: #93c5fd; white-space: nowrap; }
+    /* ── Header ───────────────────────────────────────────── */
+    #header {
+      background: #0d3b66;
+      color: #fff;
+      padding: 0 16px;
+      height: 52px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-shrink: 0;
+      box-shadow: 0 2px 6px rgba(0,0,0,.3);
+      z-index: 1000;
+    }
+    #header h1 { font-size: 16px; font-weight: 700; letter-spacing: .3px; white-space: nowrap; }
+    #header .subtitle { font-size: 11px; color: #93c5fd; white-space: nowrap; }
     #header .spacer { flex: 1; }
-    #total-count { font-size: 13px; background: rgba(255,255,255,.12); padding: 4px 12px; border-radius: 20px; white-space: nowrap; }
+    #total-count { font-size: 12px; background: rgba(255,255,255,.12); padding: 3px 10px; border-radius: 20px; white-space: nowrap; }
     #total-count span { font-weight: 700; }
-    #footer-toggle { background: rgba(255,255,255,.15); color: #e0f2fe; border: 1px solid rgba(255,255,255,.25); padding: 5px 14px; border-radius: 4px; font-size: 11px; cursor: pointer; white-space: nowrap; }
+    #footer-toggle {
+      background: rgba(255,255,255,.15); color: #e0f2fe;
+      border: 1px solid rgba(255,255,255,.25);
+      padding: 4px 12px; border-radius: 4px; font-size: 11px; cursor: pointer; white-space: nowrap;
+    }
     #footer-toggle:hover { background: rgba(255,255,255,.25); }
 
-    #body { display: flex; flex: 1; overflow: hidden; }
+    /* ── Tab navigation ───────────────────────────────────── */
+    #tabs {
+      display: flex;
+      background: #0b3358;
+      flex-shrink: 0;
+      border-bottom: 2px solid #1e5c96;
+    }
+    .tab-btn {
+      padding: 8px 20px;
+      color: #93c5fd;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      background: transparent;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -2px;
+      letter-spacing: .3px;
+      transition: color .15s, border-color .15s;
+    }
+    .tab-btn.active { color: #fff; border-bottom-color: #60a5fa; }
+    .tab-btn:hover:not(.active) { color: #bfdbfe; }
 
-    #sidebar { width: 280px; flex-shrink: 0; background: #fff; border-right: 1px solid #e2e8f0; display: flex; flex-direction: column; overflow-y: auto; z-index: 500; }
-    .panel { padding: 16px; border-bottom: 1px solid #e2e8f0; }
+    /* ── Tab content ──────────────────────────────────────── */
+    .tab-content { display: none; flex: 1; overflow: hidden; }
+    .tab-content.active { display: flex; }
+
+    /* ── Map tab layout ───────────────────────────────────── */
+    #sidebar {
+      width: 272px;
+      flex-shrink: 0;
+      background: #fff;
+      border-right: 1px solid #e2e8f0;
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      z-index: 500;
+    }
+    .panel { padding: 14px 16px; border-bottom: 1px solid #e2e8f0; }
     .panel-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .8px; color: #64748b; margin-bottom: 10px; }
 
     .source-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
     .source-box { border-radius: 8px; padding: 10px 12px; cursor: pointer; transition: opacity .15s; }
     .source-box:hover { opacity: .85; }
     .source-box.disabled { opacity: .32; }
-    .source-num { font-size: 22px; font-weight: 800; line-height: 1; }
+    .source-num { font-size: 20px; font-weight: 800; line-height: 1; }
     .source-label { font-size: 10px; margin-top: 3px; font-weight: 700; }
     .source-sub { font-size: 9px; margin-top: 2px; opacity: .7; }
     .box-city { background: #dbeafe; color: #1e40af; }
     .box-comm { background: #ffedd5; color: #9a3412; }
 
-    select { width: 100%; border: 1px solid #cbd5e1; border-radius: 6px; padding: 6px 10px; font-size: 13px; background: #f8fafc; color: #1e293b; margin-bottom: 8px; outline: none; }
+    select {
+      width: 100%; border: 1px solid #cbd5e1; border-radius: 6px;
+      padding: 6px 10px; font-size: 13px; background: #f8fafc;
+      color: #1e293b; margin-bottom: 8px; outline: none;
+    }
     select:focus { border-color: #3b82f6; box-shadow: 0 0 0 2px rgba(59,130,246,.2); }
     label.filter-label { font-size: 11px; color: #64748b; display: block; margin-bottom: 3px; }
-    .btn-reset { width: 100%; padding: 7px; border: 1px solid #cbd5e1; border-radius: 6px; background: #f1f5f9; color: #475569; font-size: 12px; cursor: pointer; font-weight: 600; }
+
+    .checkbox-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 10px; }
+    .checkbox-row { display: flex; align-items: center; gap: 8px; font-size: 12px; color: #334155; cursor: pointer; }
+    .checkbox-row input[type=checkbox] { width: 14px; height: 14px; accent-color: #3b82f6; cursor: pointer; }
+    .badge { font-size: 9px; background: #f1f5f9; border: 1px solid #e2e8f0; border-radius: 3px; padding: 1px 5px; color: #64748b; }
+
+    .btn-reset {
+      width: 100%; padding: 7px; border: 1px solid #cbd5e1;
+      border-radius: 6px; background: #f1f5f9; color: #475569;
+      font-size: 12px; cursor: pointer; font-weight: 600;
+    }
     .btn-reset:hover { background: #e2e8f0; }
 
     .legend-row { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 8px; font-size: 12px; color: #334155; }
@@ -63,7 +139,70 @@
 
     #map { flex: 1; height: 100%; }
 
-    #footer { background: #1e293b; color: #94a3b8; font-size: 11px; line-height: 1.7; padding: 20px 28px; flex-shrink: 0; display: none; }
+    /* ── Insight tab ──────────────────────────────────────── */
+    #tab-insight {
+      overflow-y: auto;
+      background: #f8fafc;
+      flex-direction: column;
+    }
+    #insight-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 24px 24px 40px;
+      width: 100%;
+    }
+    .insight-header {
+      font-size: 20px;
+      font-weight: 700;
+      color: #0f172a;
+      margin-bottom: 4px;
+    }
+    .insight-sub {
+      font-size: 13px;
+      color: #64748b;
+      margin-bottom: 24px;
+    }
+
+    /* Summary cards */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-bottom: 28px;
+    }
+    .kpi-card {
+      background: #fff;
+      border-radius: 12px;
+      padding: 16px 18px;
+      box-shadow: 0 1px 3px rgba(0,0,0,.08);
+    }
+    .kpi-value { font-size: 28px; font-weight: 800; color: #0d3b66; line-height: 1; }
+    .kpi-label { font-size: 11px; color: #64748b; margin-top: 4px; font-weight: 600; text-transform: uppercase; letter-spacing: .5px; }
+    .kpi-sub   { font-size: 10px; color: #94a3b8; margin-top: 2px; }
+
+    /* Chart sections */
+    .chart-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+    .chart-card {
+      background: #fff;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 1px 3px rgba(0,0,0,.08);
+    }
+    .chart-card.full-width { grid-column: 1 / -1; }
+    .chart-title { font-size: 14px; font-weight: 700; color: #0f172a; margin-bottom: 4px; }
+    .chart-desc  { font-size: 11px; color: #64748b; margin-bottom: 14px; }
+    .chart-wrap  { position: relative; }
+
+    /* ── Footer ───────────────────────────────────────────── */
+    #footer {
+      background: #1e293b; color: #94a3b8; font-size: 11px;
+      line-height: 1.7; padding: 18px 24px; flex-shrink: 0; display: none;
+    }
     #footer.visible { display: block; }
     #footer-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
     #footer h3 { color: #e2e8f0; font-size: 12px; font-weight: 700; margin-bottom: 6px; margin-top: 12px; letter-spacing: .3px; }
@@ -73,27 +212,101 @@
     #footer code { background: rgba(255,255,255,.08); padding: 1px 4px; border-radius: 3px; font-size: 10px; }
     #footer strong { color: #cbd5e1; }
 
-    #loading { position: fixed; inset: 0; background: rgba(15,23,42,.75); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; color: #fff; gap: 16px; }
+    /* ── Loading overlay ──────────────────────────────────── */
+    #loading {
+      position: fixed; inset: 0;
+      background: rgba(15,23,42,.75);
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      z-index: 9999; color: #fff; gap: 16px;
+    }
     .spinner { width: 44px; height: 44px; border: 4px solid rgba(255,255,255,.2); border-top-color: #60a5fa; border-radius: 50%; animation: spin .8s linear infinite; }
     @keyframes spin { to { transform: rotate(360deg); } }
     #loading p { font-size: 14px; color: #93c5fd; }
+
+    /* ── Mobile sidebar toggle ────────────────────────────── */
+    #sidebar-toggle {
+      display: none;
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      z-index: 600;
+      background: #fff;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 8px 12px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #1e293b;
+      cursor: pointer;
+      box-shadow: 0 2px 6px rgba(0,0,0,.12);
+    }
+
+    /* ── Responsive: Mobile ───────────────────────────────── */
+    @media (max-width: 768px) {
+      #header h1 { font-size: 14px; }
+      #header .subtitle { display: none; }
+      #total-count { font-size: 11px; padding: 3px 8px; }
+      #footer-toggle { display: none; }
+
+      .tab-btn { padding: 8px 14px; font-size: 12px; }
+
+      #sidebar {
+        position: absolute;
+        top: 0; left: 0;
+        width: 100%;
+        max-height: 60vh;
+        z-index: 600;
+        transform: translateY(-100%);
+        transition: transform .25s ease;
+        border-right: none;
+        border-bottom: 1px solid #e2e8f0;
+        box-shadow: 0 4px 12px rgba(0,0,0,.2);
+      }
+      #sidebar.open { transform: translateY(0); }
+      #sidebar-toggle { display: block; }
+
+      #tab-map { position: relative; }
+      #map { height: 100%; }
+
+      .kpi-grid { grid-template-columns: 1fr 1fr; }
+      .chart-grid { grid-template-columns: 1fr; }
+      .chart-card.full-width { grid-column: 1; }
+      #insight-inner { padding: 16px 14px 32px; }
+
+      #footer-grid { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 480px) {
+      .kpi-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
+      .kpi-value { font-size: 22px; }
+    }
   </style>
 </head>
 <body>
 
 <div id="loading"><div class="spinner"></div><p>Loading bench data…</p></div>
 
+<!-- ── Header ───────────────────────────────────────────── -->
 <div id="header">
   <div>
     <h1>Helsinki Bench Locations</h1>
-    <div class="subtitle">City of Helsinki – Open Data (YLRE + OpenStreetMap)</div>
+    <div class="subtitle">YLRE + OpenStreetMap · Open Data</div>
   </div>
   <div class="spacer"></div>
   <button id="footer-toggle" onclick="toggleFooter()">ⓘ About this data</button>
   <div id="total-count">Showing <span id="shown-count">–</span> of <span id="all-count">–</span> benches</div>
 </div>
 
-<div id="body">
+<!-- ── Tab nav ───────────────────────────────────────────── -->
+<div id="tabs">
+  <button class="tab-btn active" onclick="showTab('map')">🗺 Map</button>
+  <button class="tab-btn" onclick="showTab('insight')">📊 Insight</button>
+</div>
+
+<!-- ══ Map tab ═══════════════════════════════════════════ -->
+<div id="tab-map" class="tab-content active">
+  <button id="sidebar-toggle" onclick="toggleSidebar()">☰ Filters</button>
+
   <div id="sidebar">
 
     <div class="panel">
@@ -115,8 +328,10 @@
 
     <div class="panel">
       <div class="panel-title">Filters</div>
+
       <label class="filter-label">District (Kaupunginosa)</label>
       <select id="filter-district" onchange="applyFilters()"><option value="">All districts</option></select>
+
       <label class="filter-label">Bench Type</label>
       <select id="filter-type" onchange="applyFilters()">
         <option value="">All types</option>
@@ -125,12 +340,26 @@
         <option>Single-seat bench</option>
         <option>Table-bench combination</option>
       </select>
+
       <label class="filter-label">Backrest (OSM data)</label>
       <select id="filter-backrest" onchange="applyFilters()">
         <option value="">Any</option>
         <option value="yes">With backrest</option>
         <option value="no">Without backrest</option>
       </select>
+
+      <label class="filter-label">Location character</label>
+      <div class="checkbox-group">
+        <label class="checkbox-row">
+          <input type="checkbox" id="filter-nature" onchange="applyFilters()">
+          🌿 Nature / Park <span class="badge" id="badge-nature">–</span>
+        </label>
+        <label class="checkbox-row">
+          <input type="checkbox" id="filter-waterfront" onchange="applyFilters()">
+          🌊 Waterfront <span class="badge" id="badge-waterfront">–</span>
+        </label>
+      </div>
+
       <button class="btn-reset" onclick="resetFilters()">Reset all filters</button>
     </div>
 
@@ -140,14 +369,14 @@
         <div class="dot" style="background:#1d4ed8"></div>
         <div>
           City-registered
-          <div class="legend-desc">Benches in the Helsinki YLRE official registry (street &amp; park). Includes locations confirmed by both YLRE and OSM.</div>
+          <div class="legend-desc">Helsinki YLRE official registry (street &amp; park). Also includes locations confirmed by both YLRE and OSM.</div>
         </div>
       </div>
       <div class="legend-row">
         <div class="dot" style="background:#ea580c"></div>
         <div>
           Community-mapped
-          <div class="legend-desc">Benches in OpenStreetMap not found in the YLRE registry. May include private, transit, or unregistered locations.</div>
+          <div class="legend-desc">OpenStreetMap benches not found in the YLRE registry.</div>
         </div>
       </div>
     </div>
@@ -157,10 +386,93 @@
       <div id="detail-body"></div>
     </div>
 
-  </div>
-  <div id="map"></div>
-</div>
+  </div><!-- /sidebar -->
 
+  <div id="map"></div>
+</div><!-- /tab-map -->
+
+<!-- ══ Insight tab ═══════════════════════════════════════ -->
+<div id="tab-insight" class="tab-content">
+  <div id="insight-inner">
+
+    <div class="insight-header">Helsinki Bench Insights</div>
+    <div class="insight-sub">District-level analysis of bench distribution · Data: April 2026</div>
+
+    <!-- KPI cards -->
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-value" id="kpi-total">–</div>
+        <div class="kpi-label">Total Benches</div>
+        <div class="kpi-sub">After deduplication</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-value" id="kpi-districts">–</div>
+        <div class="kpi-label">Districts</div>
+        <div class="kpi-sub">Kaupunginosa</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-value" id="kpi-nature">–</div>
+        <div class="kpi-label">Nature / Park</div>
+        <div class="kpi-sub">Park or forest setting</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-value" id="kpi-waterfront">–</div>
+        <div class="kpi-label">Waterfront</div>
+        <div class="kpi-sub">Within 200 m of sea</div>
+      </div>
+    </div>
+
+    <!-- Charts row 1 -->
+    <div class="chart-grid">
+      <div class="chart-card full-width">
+        <div class="chart-title">Bench Density by District (benches / km²)</div>
+        <div class="chart-desc">Top 30 districts ranked by bench density. Click a bar to filter the map to that district.</div>
+        <div class="chart-wrap" style="height:340px">
+          <canvas id="chart-density"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Charts row 2 -->
+    <div class="chart-grid">
+      <div class="chart-card">
+        <div class="chart-title">Community-mapped Share by District (%)</div>
+        <div class="chart-desc">Proportion of OSM-only benches (not in YLRE registry) per district.</div>
+        <div class="chart-wrap" style="height:280px">
+          <canvas id="chart-comm-pct"></canvas>
+        </div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">Bench Density vs. District Area</div>
+        <div class="chart-desc">Each dot is a district. Hover for details. Click to filter the map.</div>
+        <div class="chart-wrap" style="height:280px">
+          <canvas id="chart-scatter"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Source breakdown -->
+    <div class="chart-grid">
+      <div class="chart-card">
+        <div class="chart-title">Source Breakdown</div>
+        <div class="chart-desc">How benches are classified by data source.</div>
+        <div class="chart-wrap" style="height:220px; display:flex; align-items:center; justify-content:center;">
+          <canvas id="chart-donut" style="max-width:220px;max-height:220px;"></canvas>
+        </div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">Waterfront &amp; Nature Share by District</div>
+        <div class="chart-desc">Top 15 districts by waterfront bench percentage.</div>
+        <div class="chart-wrap" style="height:220px">
+          <canvas id="chart-waterfront"></canvas>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div><!-- /tab-insight -->
+
+<!-- ── Footer ────────────────────────────────────────────── -->
 <div id="footer">
   <div id="footer-grid">
     <div>
@@ -172,41 +484,40 @@
       License: <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank">CC BY 4.0</a><br><br>
       <strong>OpenStreetMap (OSM)</strong><br>
       Volunteer-contributed geographic data retrieved via <a href="https://overpass-api.de/" target="_blank">Overpass API</a>
-      using the tag <code>amenity=bench</code> within the Helsinki bounding box (60.10–60.35°N, 24.82–25.25°E).
+      using the tag <code>amenity=bench</code> within the Helsinki bounding box.
       License: <a href="https://opendatacommons.org/licenses/odbl/" target="_blank">ODbL 1.0</a>
     </div>
     <div>
       <h3>Classification</h3>
-      <strong>City-registered</strong> — Benches recorded in the Helsinki YLRE official public areas registry,
-      covering street areas and green/park areas. Also includes benches confirmed by both YLRE and OSM
-      (matched within 5 metres); the YLRE record is treated as authoritative.<br><br>
-      <strong>Community-mapped</strong> — Benches present in OpenStreetMap but absent from the YLRE registry.
-      These may be located at private properties, transit facilities, or outdoor areas not yet recorded by the city.
-      OSM data may include additional attributes such as backrest presence, material, and seat count.
+      <strong>City-registered</strong> — Benches in the Helsinki YLRE official registry (street &amp; park areas). Includes benches confirmed by both YLRE and OSM (matched within 5 m).<br><br>
+      <strong>Community-mapped</strong> — Benches in OpenStreetMap not found in the YLRE registry. May include private, transit, or unregistered locations.<br><br>
+      <strong>Nature / Park</strong> — YLRE park benches (<code>YLRE_Viherosat_piste</code> layer) or OSM-only benches within park/forest polygons.<br><br>
+      <strong>Waterfront</strong> — Benches within 200 m of the Baltic Sea coastline (OSM coastline data).
       <h3>District Boundaries</h3>
-      District (kaupunginosa) assignment was performed by spatially joining each bench point to the
-      <a href="https://kartta.hel.fi/ws/geoserver/avoindata/wfs" target="_blank">Kaupunginosajako</a>
-      polygon layer from the Helsinki WFS service.
+      District assignment via Point-in-Polygon with the <a href="https://kartta.hel.fi/ws/geoserver/avoindata/wfs" target="_blank">Kaupunginosajako</a> WFS layer. District areas calculated in EPSG:3067.
     </div>
     <div>
       <h3>Methodology</h3>
-      Data was collected in April 2026. Finnish field values were translated to English.
-      Coordinates were reprojected from the Helsinki local CRS (EPSG:3879) to WGS84 (EPSG:4326) using pyproj.<br><br>
-      <strong>Deduplication:</strong> Benches appearing in both YLRE and OSM were identified using a
-      5-metre proximity threshold (scipy cKDTree) and merged into a single feature retaining attributes from both sources.<br><br>
-      <strong>Total:</strong> 12,752 unique bench locations across 56 districts after deduplication
-      (original: 8,852 YLRE + 6,776 OSM = 15,628 records; 3,040 matched pairs merged).<br><br>
-      Source code and data: <a href="https://github.com/taiyo-ishikawa/helsinki-bench-map" target="_blank">github.com/taiyo-ishikawa/helsinki-bench-map</a>
+      Data collected April 2026. Finnish field values translated to English. Coordinates reprojected from EPSG:3879 → WGS84 using pyproj.<br><br>
+      <strong>Deduplication:</strong> Benches in both YLRE and OSM merged using a 5 m threshold (scipy cKDTree). Merged records retain attributes from both sources.<br><br>
+      <strong>Total:</strong> 12,752 unique bench locations across 56 districts (original: 8,852 YLRE + 6,776 OSM = 15,628 records; 3,040 matched pairs merged).<br><br>
+      Source code &amp; data: <a href="https://github.com/taiyo-ishikawa/helsinki-bench-map" target="_blank">github.com/taiyo-ishikawa/helsinki-bench-map</a>
     </div>
   </div>
 </div>
 
 <script>
+/* ══════════════════════════════════════════════════════════
+   Global state
+══════════════════════════════════════════════════════════ */
 const COLOR = { city: '#1d4ed8', comm: '#ea580c' };
 function sourceCategory(src) { return src === 'OpenStreetMap' ? 'comm' : 'city'; }
 
 let allMarkers = [], cluster = null, hiddenCats = new Set();
+let districtStats = [];   // from district_stats.json
+let benchFeatures = [];   // all bench features
 
+/* ── Map init ─────────────────────────────────────────── */
 const map = L.map('map').setView([60.192, 24.946], 12);
 L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
   attribution: '© OpenStreetMap contributors © CARTO', maxZoom: 19
@@ -220,15 +531,51 @@ function makeIcon(cat) {
   });
 }
 
+/* ── Tab control ──────────────────────────────────────── */
+function showTab(name) {
+  document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  document.querySelectorAll('.tab-btn').forEach(el => {
+    if (el.textContent.toLowerCase().includes(name)) el.classList.add('active');
+  });
+  if (name === 'map') {
+    setTimeout(() => map.invalidateSize(), 50);
+  }
+}
+
+/* ── Mobile sidebar toggle ────────────────────────────── */
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+}
+
+/* ── Footer ───────────────────────────────────────────── */
+function toggleFooter() {
+  const f = document.getElementById('footer');
+  f.classList.toggle('visible');
+  document.getElementById('footer-toggle').textContent = f.classList.contains('visible') ? '✕ Close' : 'ⓘ About this data';
+}
+
+/* ── Detail panel ─────────────────────────────────────── */
 function humanKey(k) {
   return k.replace(/^(ylre_|osm_)/,'').replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase());
 }
 
 function buildDetail(props) {
   let html = '';
-  if (props.district) {
-    html += `<div style="display:inline-block;background:#f1f5f9;border-radius:4px;padding:2px 8px;font-size:11px;color:#475569;margin-bottom:8px;">📍 ${props.district}</div>`;
+  // Badges
+  const badges = [];
+  if (props.district)      badges.push(`📍 ${props.district}`);
+  if (props.is_nature)     badges.push('🌿 Nature/Park');
+  if (props.is_waterfront) badges.push('🌊 Waterfront');
+  if (badges.length) {
+    html += `<div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:10px;">`;
+    badges.forEach(b => {
+      html += `<span style="background:#f1f5f9;border-radius:4px;padding:2px 8px;font-size:11px;color:#475569;">${b}</span>`;
+    });
+    html += `</div>`;
   }
+
   if (props.source === 'YLRE+OSM') {
     html += `<div class="section-label" style="color:#1e40af">YLRE (City Registry)</div><table class="detail-table">`;
     for (const [k,v] of Object.entries(props)) {
@@ -242,10 +589,10 @@ function buildDetail(props) {
     if (props.match_distance_m!=null) html+=`<tr><td>Match distance</td><td>${props.match_distance_m} m</td></tr>`;
     html += `</table>`;
   } else {
-    const skip = new Set(['source','feature_id','osm_id','osm_type','district']);
+    const skip = new Set(['source','feature_id','osm_id','osm_type','district','is_nature','is_waterfront','ylre_source']);
     html += `<table class="detail-table">`;
     for (const [k,v] of Object.entries(props)) {
-      if (skip.has(k)||v==null) continue;
+      if (skip.has(k)||v==null||v===false) continue;
       html += `<tr><td>${humanKey(k)}</td><td>${v}</td></tr>`;
     }
     html += `</table>`;
@@ -268,33 +615,34 @@ function showDetail(feature) {
 }
 function closeDetail() { document.getElementById('detail-panel').classList.remove('visible'); }
 
-function toggleFooter() {
-  const f = document.getElementById('footer');
-  f.classList.toggle('visible');
-  document.getElementById('footer-toggle').textContent = f.classList.contains('visible') ? '✕ Close' : 'ⓘ About this data';
-}
-
-function getBenchType(p) { return p.bench_type||p.ylre_bench_type||null; }
-function getBackrest(p)  { return p.backrest||p.osm_backrest||null; }
-
+/* ── Source toggle ────────────────────────────────────── */
 function toggleSource(cat) {
   if (hiddenCats.has(cat)) hiddenCats.delete(cat); else hiddenCats.add(cat);
   document.getElementById('toggle-'+cat).classList.toggle('disabled', hiddenCats.has(cat));
   applyFilters();
 }
 
+/* ── Filters ──────────────────────────────────────────── */
+function getBenchType(p) { return p.bench_type||p.ylre_bench_type||null; }
+function getBackrest(p)  { return p.backrest||p.osm_backrest||null; }
+
 function applyFilters() {
-  const dist = document.getElementById('filter-district').value;
-  const type = document.getElementById('filter-type').value;
-  const back = document.getElementById('filter-backrest').value;
+  const dist  = document.getElementById('filter-district').value;
+  const type  = document.getElementById('filter-type').value;
+  const back  = document.getElementById('filter-backrest').value;
+  const nature= document.getElementById('filter-nature').checked;
+  const water = document.getElementById('filter-waterfront').checked;
+
   cluster.clearLayers();
   let shown = 0;
   for (const {marker, feature, cat} of allMarkers) {
     const p = feature.properties;
     if (hiddenCats.has(cat)) continue;
-    if (dist && p.district !== dist) continue;
-    if (type && getBenchType(p) !== type) continue;
-    if (back && getBackrest(p) !== back) continue;
+    if (dist   && p.district !== dist) continue;
+    if (type   && getBenchType(p) !== type) continue;
+    if (back   && getBackrest(p) !== back) continue;
+    if (nature && !p.is_nature) continue;
+    if (water  && !p.is_waterfront) continue;
     cluster.addLayer(marker);
     shown++;
   }
@@ -303,41 +651,320 @@ function applyFilters() {
 
 function resetFilters() {
   ['filter-district','filter-type','filter-backrest'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('filter-nature').checked = false;
+  document.getElementById('filter-waterfront').checked = false;
   hiddenCats.clear();
   ['city','comm'].forEach(c => document.getElementById('toggle-'+c).classList.remove('disabled'));
   applyFilters();
 }
 
-fetch('helsinki_benches_deduped_en.json?v=2')
-  .then(r => r.json())
-  .then(data => {
-    const features = data.features;
-    let nCity=0, nComm=0;
-    const districts = new Set();
-    for (const f of features) { if(f.properties.district) districts.add(f.properties.district); }
-    const sel = document.getElementById('filter-district');
-    [...districts].sort().forEach(d => { const o=document.createElement('option'); o.value=o.textContent=d; sel.appendChild(o); });
+/* ── Filter from Insight (district click) ─────────────── */
+function filterByDistrict(district) {
+  showTab('map');
+  document.getElementById('filter-district').value = district;
+  applyFilters();
+  // Close sidebar on mobile after filtering
+  document.getElementById('sidebar').classList.remove('open');
+}
 
-    cluster = L.markerClusterGroup({ maxClusterRadius: 50, chunkedLoading: true });
-    for (const feature of features) {
-      const [lon,lat] = feature.geometry.coordinates;
-      const cat = sourceCategory(feature.properties.source);
-      cat==='city' ? nCity++ : nComm++;
-      const marker = L.marker([lat,lon], { icon: makeIcon(cat) });
-      marker.on('click', () => showDetail(feature));
-      allMarkers.push({ marker, feature, cat });
-      cluster.addLayer(marker);
+/* ══════════════════════════════════════════════════════════
+   Chart.js helpers
+══════════════════════════════════════════════════════════ */
+const CHART_COLORS = {
+  blue:   '#3b82f6',
+  orange: '#f97316',
+  green:  '#22c55e',
+  purple: '#a855f7',
+  cyan:   '#06b6d4',
+  grid:   '#e2e8f0',
+  text:   '#64748b',
+};
+
+const baseFont = { family: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', size: 11 };
+Chart.defaults.font = baseFont;
+Chart.defaults.color = CHART_COLORS.text;
+
+function buildCharts(stats, features) {
+  // ── 1. Bar chart: bench density top 30 ──────────────────
+  const top30 = [...stats].sort((a,b)=>(b.bench_density||0)-(a.bench_density||0)).slice(0,30);
+  const densityLabels = top30.map(d => d.district);
+  const densityValues = top30.map(d => d.bench_density || 0);
+
+  const densityCtx = document.getElementById('chart-density').getContext('2d');
+  const densityChart = new Chart(densityCtx, {
+    type: 'bar',
+    data: {
+      labels: densityLabels,
+      datasets: [{
+        label: 'Benches / km²',
+        data: densityValues,
+        backgroundColor: densityValues.map((_, i) => i === 0 ? '#1d4ed8' : CHART_COLORS.blue + 'cc'),
+        borderRadius: 4,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      onClick: (evt, elements) => {
+        if (elements.length > 0) {
+          const district = densityLabels[elements[0].index];
+          filterByDistrict(district);
+        }
+      },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: ctx => `${ctx.parsed.y.toFixed(1)} benches/km² (n=${top30[ctx.dataIndex].bench_count})`
+          }
+        }
+      },
+      scales: {
+        x: { grid: { display: false }, ticks: { maxRotation: 55, font: { size: 10 } } },
+        y: { grid: { color: CHART_COLORS.grid }, title: { display: true, text: 'Benches / km²' } }
+      }
     }
-    map.addLayer(cluster);
-    document.getElementById('count-city').textContent = nCity.toLocaleString();
-    document.getElementById('count-comm').textContent = nComm.toLocaleString();
-    document.getElementById('all-count').textContent  = features.length.toLocaleString();
-    document.getElementById('shown-count').textContent = features.length.toLocaleString();
-    document.getElementById('loading').style.display  = 'none';
-  })
-  .catch(err => {
-    document.getElementById('loading').innerHTML = `<div style="color:#f87171;font-size:14px">Failed to load data:<br>${err.message}</div>`;
   });
+
+  // ── 2. Bar chart: community-mapped % top 20 ─────────────
+  const top20comm = [...stats]
+    .filter(d => d.bench_count >= 10)
+    .sort((a,b) => b.comm_pct - a.comm_pct)
+    .slice(0, 20);
+
+  const commCtx = document.getElementById('chart-comm-pct').getContext('2d');
+  new Chart(commCtx, {
+    type: 'bar',
+    data: {
+      labels: top20comm.map(d => d.district),
+      datasets: [{
+        label: 'Community-mapped %',
+        data: top20comm.map(d => d.comm_pct),
+        backgroundColor: CHART_COLORS.orange + 'cc',
+        borderRadius: 4,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      onClick: (evt, elements) => {
+        if (elements.length > 0) filterByDistrict(top20comm[elements[0].index].district);
+      },
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: ctx => `${ctx.parsed.y}% community-mapped` } }
+      },
+      scales: {
+        x: { grid: { display: false }, ticks: { maxRotation: 55, font: { size: 10 } } },
+        y: { grid: { color: CHART_COLORS.grid }, max: 100, title: { display: true, text: '% Community-mapped' } }
+      }
+    }
+  });
+
+  // ── 3. Scatter: area vs bench density ───────────────────
+  const scatterData = stats
+    .filter(d => d.area_km2 && d.bench_density)
+    .map(d => ({ x: d.area_km2, y: d.bench_density, district: d.district, n: d.bench_count }));
+
+  const scatterCtx = document.getElementById('chart-scatter').getContext('2d');
+  new Chart(scatterCtx, {
+    type: 'scatter',
+    data: {
+      datasets: [{
+        label: 'District',
+        data: scatterData,
+        backgroundColor: CHART_COLORS.cyan + 'aa',
+        pointRadius: 6,
+        pointHoverRadius: 8,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      onClick: (evt, elements) => {
+        if (elements.length > 0) filterByDistrict(scatterData[elements[0].index].district);
+      },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: ctx => {
+              const d = ctx.raw;
+              return [`${d.district}`, `Area: ${d.x.toFixed(2)} km²`, `Density: ${d.y.toFixed(1)} benches/km²`, `n=${d.n}`];
+            }
+          }
+        }
+      },
+      scales: {
+        x: { grid: { color: CHART_COLORS.grid }, title: { display: true, text: 'District area (km²)' } },
+        y: { grid: { color: CHART_COLORS.grid }, title: { display: true, text: 'Benches / km²' } }
+      }
+    }
+  });
+
+  // ── 4. Donut: source breakdown ───────────────────────────
+  // Count by source type from features
+  const srcCount = {};
+  for (const f of features) {
+    const s = f.properties.source;
+    srcCount[s] = (srcCount[s] || 0) + 1;
+  }
+  const donutLabels = Object.keys(srcCount);
+  const donutValues = donutLabels.map(k => srcCount[k]);
+  const donutColors = donutLabels.map(l =>
+    l === 'OpenStreetMap' ? CHART_COLORS.orange :
+    l === 'YLRE+OSM'      ? '#6366f1' :
+    l.includes('park')    ? CHART_COLORS.green :
+    CHART_COLORS.blue
+  );
+
+  const donutCtx = document.getElementById('chart-donut').getContext('2d');
+  new Chart(donutCtx, {
+    type: 'doughnut',
+    data: {
+      labels: donutLabels,
+      datasets: [{ data: donutValues, backgroundColor: donutColors, borderWidth: 2 }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'bottom', labels: { font: { size: 10 }, boxWidth: 12 } },
+        tooltip: { callbacks: { label: ctx => ` ${ctx.label}: ${ctx.parsed.toLocaleString()} (${(ctx.parsed/features.length*100).toFixed(1)}%)` } }
+      }
+    }
+  });
+
+  // ── 5. Waterfront bar (top 15 by waterfront %) ──────────
+  // Calculate per-district waterfront % from features
+  const distWaterfront = {}, distNature = {}, distTotal = {};
+  for (const f of features) {
+    const d = f.properties.district;
+    if (!d) continue;
+    distTotal[d] = (distTotal[d] || 0) + 1;
+    if (f.properties.is_waterfront) distWaterfront[d] = (distWaterfront[d] || 0) + 1;
+    if (f.properties.is_nature)     distNature[d]     = (distNature[d] || 0) + 1;
+  }
+  const wfData = Object.keys(distTotal)
+    .filter(d => distTotal[d] >= 10)
+    .map(d => ({
+      district: d,
+      wf_pct: Math.round((distWaterfront[d] || 0) / distTotal[d] * 100),
+      nat_pct: Math.round((distNature[d] || 0) / distTotal[d] * 100),
+    }))
+    .sort((a,b) => b.wf_pct - a.wf_pct)
+    .slice(0, 15);
+
+  const wfCtx = document.getElementById('chart-waterfront').getContext('2d');
+  new Chart(wfCtx, {
+    type: 'bar',
+    data: {
+      labels: wfData.map(d => d.district),
+      datasets: [
+        { label: '🌊 Waterfront %', data: wfData.map(d => d.wf_pct), backgroundColor: '#06b6d4aa', borderRadius: 3 },
+        { label: '🌿 Nature %',     data: wfData.map(d => d.nat_pct), backgroundColor: '#22c55eaa', borderRadius: 3 },
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      onClick: (evt, elements) => {
+        if (elements.length > 0) filterByDistrict(wfData[elements[0].index].district);
+      },
+      plugins: { legend: { position: 'bottom', labels: { font: { size: 10 }, boxWidth: 12 } } },
+      scales: {
+        x: { grid: { display: false }, ticks: { maxRotation: 55, font: { size: 10 } } },
+        y: { grid: { color: CHART_COLORS.grid }, max: 100, title: { display: true, text: '%' } }
+      }
+    }
+  });
+}
+
+/* ══════════════════════════════════════════════════════════
+   Data loading
+══════════════════════════════════════════════════════════ */
+Promise.all([
+  fetch('helsinki_benches_deduped_en.json?v=3').then(r => r.json()),
+  fetch('district_stats.json').then(r => r.json()).catch(() => [])
+])
+.then(([benchData, stats]) => {
+  benchFeatures = benchData.features;
+  districtStats = stats;
+
+  // ── Map setup ──────────────────────────────────────────
+  let nCity = 0, nComm = 0, nNature = 0, nWaterfront = 0;
+  const districts = new Set();
+
+  for (const f of benchFeatures) {
+    const p = f.properties;
+    if (p.district) districts.add(p.district);
+    if (p.is_nature)     nNature++;
+    if (p.is_waterfront) nWaterfront++;
+  }
+
+  // Populate district dropdown
+  const sel = document.getElementById('filter-district');
+  [...districts].sort().forEach(d => {
+    const o = document.createElement('option');
+    o.value = o.textContent = d;
+    sel.appendChild(o);
+  });
+
+  // Update badges
+  document.getElementById('badge-nature').textContent = nNature.toLocaleString();
+  document.getElementById('badge-waterfront').textContent = nWaterfront.toLocaleString();
+
+  // Build marker cluster
+  cluster = L.markerClusterGroup({ maxClusterRadius: 50, chunkedLoading: true });
+
+  for (const feature of benchFeatures) {
+    const [lon, lat] = feature.geometry.coordinates;
+    const cat = sourceCategory(feature.properties.source);
+    cat === 'city' ? nCity++ : nComm++;
+    const marker = L.marker([lat, lon], { icon: makeIcon(cat) });
+    marker.on('click', () => showDetail(feature));
+    allMarkers.push({ marker, feature, cat });
+    cluster.addLayer(marker);
+  }
+  map.addLayer(cluster);
+
+  // Update header counts
+  document.getElementById('count-city').textContent = nCity.toLocaleString();
+  document.getElementById('count-comm').textContent = nComm.toLocaleString();
+  document.getElementById('all-count').textContent  = benchFeatures.length.toLocaleString();
+  document.getElementById('shown-count').textContent = benchFeatures.length.toLocaleString();
+
+  // ── KPI cards ──────────────────────────────────────────
+  document.getElementById('kpi-total').textContent      = benchFeatures.length.toLocaleString();
+  document.getElementById('kpi-districts').textContent  = districts.size;
+  document.getElementById('kpi-nature').textContent     = nNature.toLocaleString();
+  document.getElementById('kpi-waterfront').textContent = nWaterfront.toLocaleString();
+
+  // ── Augment stats with waterfront/nature counts if not already present ──
+  if (districtStats.length === 0) {
+    // Build minimal stats from features only
+    const dMap = {};
+    for (const f of benchFeatures) {
+      const d = f.properties.district;
+      if (!d) continue;
+      if (!dMap[d]) dMap[d] = { district: d, bench_count: 0, city_count: 0, comm_count: 0, area_km2: null, bench_density: null, comm_pct: 0 };
+      dMap[d].bench_count++;
+      sourceCategory(f.properties.source) === 'comm' ? dMap[d].comm_count++ : dMap[d].city_count++;
+    }
+    districtStats = Object.values(dMap).map(d => {
+      d.comm_pct = d.bench_count > 0 ? Math.round(d.comm_count / d.bench_count * 100) : 0;
+      return d;
+    });
+  }
+
+  // ── Build charts ────────────────────────────────────────
+  buildCharts(districtStats, benchFeatures);
+
+  document.getElementById('loading').style.display = 'none';
+})
+.catch(err => {
+  document.getElementById('loading').innerHTML = `<div style="color:#f87171;font-size:14px">Failed to load data:<br>${err.message}</div>`;
+});
 </script>
 </body>
 </html>
