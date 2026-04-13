@@ -5,300 +5,118 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Helsinki Bench Locations</title>
 
-  <!-- Leaflet -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <!-- MarkerCluster -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
   <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #f1f5f9; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
 
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      background: #f1f5f9;
-      height: 100vh;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-    }
-
-    /* ── Header ─────────────────────────────────── */
-    #header {
-      background: #0d3b66;
-      color: #fff;
-      padding: 0 20px;
-      height: 56px;
-      display: flex;
-      align-items: center;
-      gap: 16px;
-      flex-shrink: 0;
-      box-shadow: 0 2px 6px rgba(0,0,0,.3);
-      z-index: 1000;
-    }
-    #header h1 {
-      font-size: 17px;
-      font-weight: 700;
-      letter-spacing: .3px;
-      white-space: nowrap;
-    }
-    #header .subtitle {
-      font-size: 12px;
-      color: #93c5fd;
-      white-space: nowrap;
-    }
+    #header { background: #0d3b66; color: #fff; padding: 0 20px; height: 56px; display: flex; align-items: center; gap: 16px; flex-shrink: 0; box-shadow: 0 2px 6px rgba(0,0,0,.3); z-index: 1000; }
+    #header h1 { font-size: 17px; font-weight: 700; letter-spacing: .3px; white-space: nowrap; }
+    #header .subtitle { font-size: 12px; color: #93c5fd; white-space: nowrap; }
     #header .spacer { flex: 1; }
-    #total-count {
-      font-size: 13px;
-      background: rgba(255,255,255,.12);
-      padding: 4px 12px;
-      border-radius: 20px;
-      white-space: nowrap;
-    }
+    #total-count { font-size: 13px; background: rgba(255,255,255,.12); padding: 4px 12px; border-radius: 20px; white-space: nowrap; }
     #total-count span { font-weight: 700; }
+    #footer-toggle { background: rgba(255,255,255,.15); color: #e0f2fe; border: 1px solid rgba(255,255,255,.25); padding: 5px 14px; border-radius: 4px; font-size: 11px; cursor: pointer; white-space: nowrap; }
+    #footer-toggle:hover { background: rgba(255,255,255,.25); }
 
-    /* ── Body ────────────────────────────────────── */
-    #body {
-      display: flex;
-      flex: 1;
-      overflow: hidden;
-    }
+    #body { display: flex; flex: 1; overflow: hidden; }
 
-    /* ── Sidebar ─────────────────────────────────── */
-    #sidebar {
-      width: 280px;
-      flex-shrink: 0;
-      background: #fff;
-      border-right: 1px solid #e2e8f0;
-      display: flex;
-      flex-direction: column;
-      overflow-y: auto;
-      z-index: 500;
-    }
+    #sidebar { width: 280px; flex-shrink: 0; background: #fff; border-right: 1px solid #e2e8f0; display: flex; flex-direction: column; overflow-y: auto; z-index: 500; }
+    .panel { padding: 16px; border-bottom: 1px solid #e2e8f0; }
+    .panel-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .8px; color: #64748b; margin-bottom: 10px; }
 
-    .panel {
-      padding: 16px;
-      border-bottom: 1px solid #e2e8f0;
-    }
-    .panel-title {
-      font-size: 11px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: .8px;
-      color: #64748b;
-      margin-bottom: 10px;
-    }
+    .source-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .source-box { border-radius: 8px; padding: 10px 12px; cursor: pointer; transition: opacity .15s; }
+    .source-box:hover { opacity: .85; }
+    .source-box.disabled { opacity: .32; }
+    .source-num { font-size: 22px; font-weight: 800; line-height: 1; }
+    .source-label { font-size: 10px; margin-top: 3px; font-weight: 700; }
+    .source-sub { font-size: 9px; margin-top: 2px; opacity: .7; }
+    .box-city { background: #dbeafe; color: #1e40af; }
+    .box-comm { background: #ffedd5; color: #9a3412; }
 
-    /* Stats */
-    .stat-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 8px;
-    }
-    .stat-box {
-      border-radius: 8px;
-      padding: 8px 10px;
-      cursor: pointer;
-      transition: opacity .15s;
-    }
-    .stat-box:hover { opacity: .85; }
-    .stat-box.disabled { opacity: .35; }
-    .stat-num {
-      font-size: 20px;
-      font-weight: 800;
-      line-height: 1;
-    }
-    .stat-label { font-size: 10px; margin-top: 3px; font-weight: 500; }
-
-    .box-street { background: #dbeafe; color: #1e40af; }
-    .box-park   { background: #dcfce7; color: #166534; }
-    .box-osm    { background: #ffedd5; color: #9a3412; }
-    .box-merged { background: #ede9fe; color: #5b21b6; }
-
-    /* Filter selects */
-    select, input[type=text] {
-      width: 100%;
-      border: 1px solid #cbd5e1;
-      border-radius: 6px;
-      padding: 6px 10px;
-      font-size: 13px;
-      background: #f8fafc;
-      color: #1e293b;
-      margin-bottom: 8px;
-      outline: none;
-    }
-    select:focus, input[type=text]:focus {
-      border-color: #3b82f6;
-      box-shadow: 0 0 0 2px rgba(59,130,246,.2);
-    }
-    label.filter-label {
-      font-size: 11px;
-      color: #64748b;
-      display: block;
-      margin-bottom: 3px;
-    }
-
-    .btn-reset {
-      width: 100%;
-      padding: 7px;
-      border: 1px solid #cbd5e1;
-      border-radius: 6px;
-      background: #f1f5f9;
-      color: #475569;
-      font-size: 12px;
-      cursor: pointer;
-      font-weight: 600;
-      transition: background .15s;
-    }
+    select { width: 100%; border: 1px solid #cbd5e1; border-radius: 6px; padding: 6px 10px; font-size: 13px; background: #f8fafc; color: #1e293b; margin-bottom: 8px; outline: none; }
+    select:focus { border-color: #3b82f6; box-shadow: 0 0 0 2px rgba(59,130,246,.2); }
+    label.filter-label { font-size: 11px; color: #64748b; display: block; margin-bottom: 3px; }
+    .btn-reset { width: 100%; padding: 7px; border: 1px solid #cbd5e1; border-radius: 6px; background: #f1f5f9; color: #475569; font-size: 12px; cursor: pointer; font-weight: 600; }
     .btn-reset:hover { background: #e2e8f0; }
 
-    /* Legend */
-    .legend-row {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 6px;
-      font-size: 12px;
-      color: #334155;
-    }
-    .dot {
-      width: 12px; height: 12px;
-      border-radius: 50%;
-      flex-shrink: 0;
-      border: 2px solid rgba(0,0,0,.15);
-    }
+    .legend-row { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 8px; font-size: 12px; color: #334155; }
+    .dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; margin-top: 2px; border: 2px solid rgba(0,0,0,.15); }
+    .legend-desc { font-size: 10px; color: #94a3b8; margin-top: 2px; }
 
-    /* Detail panel */
-    #detail-panel {
-      display: none;
-      padding: 14px 16px;
-    }
+    #detail-panel { display: none; padding: 14px 16px; }
     #detail-panel.visible { display: block; }
-    #detail-close {
-      float: right;
-      cursor: pointer;
-      font-size: 16px;
-      color: #94a3b8;
-      line-height: 1;
-      padding: 2px 4px;
-    }
+    #detail-close { float: right; cursor: pointer; font-size: 16px; color: #94a3b8; }
     #detail-close:hover { color: #475569; }
-    #detail-title {
-      font-size: 14px;
-      font-weight: 700;
-      color: #0f172a;
-      margin-bottom: 10px;
-      padding-right: 20px;
-    }
+    #detail-title { font-size: 14px; font-weight: 700; color: #0f172a; margin-bottom: 10px; padding-right: 20px; }
     .detail-table { width: 100%; border-collapse: collapse; }
     .detail-table tr:nth-child(even) td { background: #f8fafc; }
-    .detail-table td {
-      padding: 5px 6px;
-      font-size: 12px;
-      border-bottom: 1px solid #f1f5f9;
-      vertical-align: top;
-    }
-    .detail-table td:first-child {
-      color: #64748b;
-      font-weight: 600;
-      white-space: nowrap;
-      width: 45%;
-    }
-    .detail-table td:last-child { color: #1e293b; word-break: break-word; }
+    .detail-table td { padding: 5px 6px; font-size: 12px; border-bottom: 1px solid #f1f5f9; vertical-align: top; }
+    .detail-table td:first-child { color: #64748b; font-weight: 600; white-space: nowrap; width: 45%; }
+    .section-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .6px; color: #94a3b8; margin: 10px 0 4px; }
 
-    .section-label {
-      font-size: 10px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: .6px;
-      color: #94a3b8;
-      margin: 10px 0 4px;
-    }
+    #map { flex: 1; height: 100%; }
 
-    /* ── Map ─────────────────────────────────────── */
-    #map {
-      flex: 1;
-      height: 100%;
-    }
+    #footer { background: #1e293b; color: #94a3b8; font-size: 11px; line-height: 1.7; padding: 20px 28px; flex-shrink: 0; display: none; }
+    #footer.visible { display: block; }
+    #footer-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+    #footer h3 { color: #e2e8f0; font-size: 12px; font-weight: 700; margin-bottom: 6px; margin-top: 12px; letter-spacing: .3px; }
+    #footer h3:first-child { margin-top: 0; }
+    #footer a { color: #60a5fa; text-decoration: none; }
+    #footer a:hover { text-decoration: underline; }
+    #footer code { background: rgba(255,255,255,.08); padding: 1px 4px; border-radius: 3px; font-size: 10px; }
+    #footer strong { color: #cbd5e1; }
 
-    /* Loading overlay */
-    #loading {
-      position: fixed;
-      inset: 0;
-      background: rgba(15,23,42,.7);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      z-index: 9999;
-      color: #fff;
-      gap: 16px;
-    }
-    .spinner {
-      width: 44px; height: 44px;
-      border: 4px solid rgba(255,255,255,.2);
-      border-top-color: #60a5fa;
-      border-radius: 50%;
-      animation: spin .8s linear infinite;
-    }
+    #loading { position: fixed; inset: 0; background: rgba(15,23,42,.75); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; color: #fff; gap: 16px; }
+    .spinner { width: 44px; height: 44px; border: 4px solid rgba(255,255,255,.2); border-top-color: #60a5fa; border-radius: 50%; animation: spin .8s linear infinite; }
     @keyframes spin { to { transform: rotate(360deg); } }
     #loading p { font-size: 14px; color: #93c5fd; }
   </style>
 </head>
 <body>
 
-<!-- Loading -->
-<div id="loading">
-  <div class="spinner"></div>
-  <p>Loading bench data…</p>
-</div>
+<div id="loading"><div class="spinner"></div><p>Loading bench data…</p></div>
 
-<!-- Header -->
 <div id="header">
   <div>
     <h1>Helsinki Bench Locations</h1>
     <div class="subtitle">City of Helsinki – Open Data (YLRE + OpenStreetMap)</div>
   </div>
   <div class="spacer"></div>
+  <button id="footer-toggle" onclick="toggleFooter()">ⓘ About this data</button>
   <div id="total-count">Showing <span id="shown-count">–</span> of <span id="all-count">–</span> benches</div>
 </div>
 
-<!-- Body -->
 <div id="body">
-
-  <!-- Sidebar -->
   <div id="sidebar">
 
-    <!-- Stats -->
     <div class="panel">
       <div class="panel-title">Data Sources</div>
-      <div class="stat-grid">
-        <div class="stat-box box-street" id="toggle-street" onclick="toggleSource('Helsinki_YLRE_street')" title="Click to toggle">
-          <div class="stat-num" id="count-street">–</div>
-          <div class="stat-label">YLRE Street</div>
+      <div class="source-grid">
+        <div class="source-box box-city" id="toggle-city" onclick="toggleSource('city')" title="Click to toggle">
+          <div class="source-num" id="count-city">–</div>
+          <div class="source-label">City-registered</div>
+          <div class="source-sub">YLRE official registry</div>
         </div>
-        <div class="stat-box box-park" id="toggle-park" onclick="toggleSource('Helsinki_YLRE_park')" title="Click to toggle">
-          <div class="stat-num" id="count-park">–</div>
-          <div class="stat-label">YLRE Park</div>
-        </div>
-        <div class="stat-box box-osm" id="toggle-osm" onclick="toggleSource('OpenStreetMap')" title="Click to toggle">
-          <div class="stat-num" id="count-osm">–</div>
-          <div class="stat-label">OSM Only</div>
-        </div>
-        <div class="stat-box box-merged" id="toggle-merged" onclick="toggleSource('YLRE+OSM')" title="Click to toggle">
-          <div class="stat-num" id="count-merged">–</div>
-          <div class="stat-label">YLRE + OSM</div>
+        <div class="source-box box-comm" id="toggle-comm" onclick="toggleSource('comm')" title="Click to toggle">
+          <div class="source-num" id="count-comm">–</div>
+          <div class="source-label">Community-mapped</div>
+          <div class="source-sub">OpenStreetMap only</div>
         </div>
       </div>
       <div style="font-size:10px;color:#94a3b8;margin-top:8px;">Click a card to hide/show source</div>
     </div>
 
-    <!-- Filters -->
     <div class="panel">
       <div class="panel-title">Filters</div>
-
+      <label class="filter-label">District (Kaupunginosa)</label>
+      <select id="filter-district" onchange="applyFilters()"><option value="">All districts</option></select>
       <label class="filter-label">Bench Type</label>
       <select id="filter-type" onchange="applyFilters()">
         <option value="">All types</option>
@@ -307,132 +125,127 @@
         <option>Single-seat bench</option>
         <option>Table-bench combination</option>
       </select>
-
-      <label class="filter-label">Area / Usage</label>
-      <select id="filter-area" onchange="applyFilters()">
-        <option value="">All areas</option>
-      </select>
-
-      <label class="filter-label">Backrest (OSM)</label>
+      <label class="filter-label">Backrest (OSM data)</label>
       <select id="filter-backrest" onchange="applyFilters()">
         <option value="">Any</option>
         <option value="yes">With backrest</option>
         <option value="no">Without backrest</option>
       </select>
-
       <button class="btn-reset" onclick="resetFilters()">Reset all filters</button>
     </div>
 
-    <!-- Legend -->
     <div class="panel">
       <div class="panel-title">Legend</div>
-      <div class="legend-row"><div class="dot" style="background:#2563EB"></div>YLRE Street bench</div>
-      <div class="legend-row"><div class="dot" style="background:#16A34A"></div>YLRE Park bench</div>
-      <div class="legend-row"><div class="dot" style="background:#EA580C"></div>OpenStreetMap only</div>
-      <div class="legend-row"><div class="dot" style="background:#7C3AED"></div>Matched (YLRE + OSM)</div>
+      <div class="legend-row">
+        <div class="dot" style="background:#1d4ed8"></div>
+        <div>
+          City-registered
+          <div class="legend-desc">Benches in the Helsinki YLRE official registry (street &amp; park). Includes locations confirmed by both YLRE and OSM.</div>
+        </div>
+      </div>
+      <div class="legend-row">
+        <div class="dot" style="background:#ea580c"></div>
+        <div>
+          Community-mapped
+          <div class="legend-desc">Benches in OpenStreetMap not found in the YLRE registry. May include private, transit, or unregistered locations.</div>
+        </div>
+      </div>
     </div>
 
-    <!-- Detail panel -->
     <div id="detail-panel" class="panel">
-      <div id="detail-title">
-        <span id="detail-close" onclick="closeDetail()">✕</span>
-        Selected Bench
-      </div>
+      <div id="detail-title"><span id="detail-close" onclick="closeDetail()">✕</span>Selected Bench</div>
       <div id="detail-body"></div>
     </div>
 
-  </div><!-- /sidebar -->
-
-  <!-- Map -->
+  </div>
   <div id="map"></div>
+</div>
 
-</div><!-- /body -->
+<div id="footer">
+  <div id="footer-grid">
+    <div>
+      <h3>Data Sources</h3>
+      <strong>Helsinki YLRE (City Registry)</strong><br>
+      Register of Public Areas of the City of Helsinki, maintained by the Urban Environment division.
+      Retrieved via <a href="https://hri.fi/data/en_GB/dataset/helsingin-kaupungin-yleisten-alueiden-rekisteri" target="_blank">Helsinki Region Infoshare (HRI)</a>
+      using the WFS API (<code>YLRE_Katuosat_piste</code> for street benches, <code>YLRE_Viherosat_piste</code> for park benches).
+      License: <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank">CC BY 4.0</a><br><br>
+      <strong>OpenStreetMap (OSM)</strong><br>
+      Volunteer-contributed geographic data retrieved via <a href="https://overpass-api.de/" target="_blank">Overpass API</a>
+      using the tag <code>amenity=bench</code> within the Helsinki bounding box (60.10–60.35°N, 24.82–25.25°E).
+      License: <a href="https://opendatacommons.org/licenses/odbl/" target="_blank">ODbL 1.0</a>
+    </div>
+    <div>
+      <h3>Classification</h3>
+      <strong>City-registered</strong> — Benches recorded in the Helsinki YLRE official public areas registry,
+      covering street areas and green/park areas. Also includes benches confirmed by both YLRE and OSM
+      (matched within 5 metres); the YLRE record is treated as authoritative.<br><br>
+      <strong>Community-mapped</strong> — Benches present in OpenStreetMap but absent from the YLRE registry.
+      These may be located at private properties, transit facilities, or outdoor areas not yet recorded by the city.
+      OSM data may include additional attributes such as backrest presence, material, and seat count.
+      <h3>District Boundaries</h3>
+      District (kaupunginosa) assignment was performed by spatially joining each bench point to the
+      <a href="https://kartta.hel.fi/ws/geoserver/avoindata/wfs" target="_blank">Kaupunginosajako</a>
+      polygon layer from the Helsinki WFS service.
+    </div>
+    <div>
+      <h3>Methodology</h3>
+      Data was collected in April 2026. Finnish field values were translated to English.
+      Coordinates were reprojected from the Helsinki local CRS (EPSG:3879) to WGS84 (EPSG:4326) using pyproj.<br><br>
+      <strong>Deduplication:</strong> Benches appearing in both YLRE and OSM were identified using a
+      5-metre proximity threshold (scipy cKDTree) and merged into a single feature retaining attributes from both sources.<br><br>
+      <strong>Total:</strong> 12,752 unique bench locations across 56 districts after deduplication
+      (original: 8,852 YLRE + 6,776 OSM = 15,628 records; 3,040 matched pairs merged).<br><br>
+      Source code and data: <a href="https://github.com/taiyo-ishikawa/helsinki-bench-map" target="_blank">github.com/taiyo-ishikawa/helsinki-bench-map</a>
+    </div>
+  </div>
+</div>
 
 <script>
-// ── Colour map ──────────────────────────────────────────────────────────────
-const SOURCE_COLOR = {
-  'Helsinki_YLRE_street': '#2563EB',
-  'Helsinki_YLRE_park':   '#16A34A',
-  'OpenStreetMap':        '#EA580C',
-  'YLRE+OSM':             '#7C3AED',
-};
+const COLOR = { city: '#1d4ed8', comm: '#ea580c' };
+function sourceCategory(src) { return src === 'OpenStreetMap' ? 'comm' : 'city'; }
 
-// ── State ───────────────────────────────────────────────────────────────────
-let allMarkers   = [];   // { marker, feature, source }
-let cluster      = null;
-let hiddenSources = new Set();
+let allMarkers = [], cluster = null, hiddenCats = new Set();
 
-// ── Map init ─────────────────────────────────────────────────────────────────
-const map = L.map('map', { zoomControl: true }).setView([60.192, 24.946], 12);
-
+const map = L.map('map').setView([60.192, 24.946], 12);
 L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-  attribution: '© OpenStreetMap contributors © CARTO',
-  maxZoom: 19,
+  attribution: '© OpenStreetMap contributors © CARTO', maxZoom: 19
 }).addTo(map);
 
-// ── Marker factory ───────────────────────────────────────────────────────────
-function makeIcon(source) {
-  const color = SOURCE_COLOR[source] || '#64748b';
-  const svg = `
-    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 14 14">
-      <circle cx="7" cy="7" r="6" fill="${color}" stroke="white" stroke-width="1.5"/>
-    </svg>`;
+function makeIcon(cat) {
+  const c = COLOR[cat];
   return L.divIcon({
-    html: svg,
-    className: '',
-    iconSize: [14, 14],
-    iconAnchor: [7, 7],
-    popupAnchor: [0, -9],
+    html: `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 14 14"><circle cx="7" cy="7" r="6" fill="${c}" stroke="white" stroke-width="1.5"/></svg>`,
+    className: '', iconSize: [14,14], iconAnchor: [7,7]
   });
 }
 
-// ── Popup / detail content ───────────────────────────────────────────────────
 function humanKey(k) {
-  return k.replace(/^(ylre_|osm_)/, '')
-          .replace(/_/g, ' ')
-          .replace(/\b\w/g, c => c.toUpperCase());
+  return k.replace(/^(ylre_|osm_)/,'').replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase());
 }
 
 function buildDetail(props) {
-  const src = props.source;
   let html = '';
-
-  if (src === 'YLRE+OSM') {
-    // YLRE section
-    html += `<div class="section-label" style="color:#1e40af">YLRE (City Registry)</div>`;
-    html += `<table class="detail-table">`;
-    const ylreFields = Object.entries(props).filter(([k]) =>
-      k.startsWith('ylre_') && !['ylre_source','ylre_feature_id'].includes(k));
-    for (const [k, v] of ylreFields) {
-      if (v === null || v === undefined) continue;
+  if (props.district) {
+    html += `<div style="display:inline-block;background:#f1f5f9;border-radius:4px;padding:2px 8px;font-size:11px;color:#475569;margin-bottom:8px;">📍 ${props.district}</div>`;
+  }
+  if (props.source === 'YLRE+OSM') {
+    html += `<div class="section-label" style="color:#1e40af">YLRE (City Registry)</div><table class="detail-table">`;
+    for (const [k,v] of Object.entries(props)) {
+      if (!k.startsWith('ylre_') || ['ylre_source','ylre_feature_id'].includes(k) || v==null) continue;
       html += `<tr><td>${humanKey(k)}</td><td>${v}</td></tr>`;
     }
+    html += `</table><div class="section-label" style="color:#9a3412;margin-top:10px">OpenStreetMap</div><table class="detail-table">`;
+    const osmFilled = Object.entries(props).filter(([k,v])=>k.startsWith('osm_')&&!['osm_osm_id','osm_osm_type'].includes(k)&&v!=null);
+    if (osmFilled.length) { for(const[k,v] of osmFilled) html+=`<tr><td>${humanKey(k)}</td><td>${v}</td></tr>`; }
+    else html += `<tr><td colspan="2" style="color:#94a3b8;font-style:italic">No additional OSM attributes</td></tr>`;
+    if (props.match_distance_m!=null) html+=`<tr><td>Match distance</td><td>${props.match_distance_m} m</td></tr>`;
     html += `</table>`;
-
-    // OSM section
-    html += `<div class="section-label" style="color:#9a3412;margin-top:10px">OpenStreetMap</div>`;
-    html += `<table class="detail-table">`;
-    const osmFields = Object.entries(props).filter(([k]) =>
-      k.startsWith('osm_') && !['osm_osm_id','osm_osm_type'].includes(k));
-    const filledOsm = osmFields.filter(([, v]) => v !== null && v !== undefined);
-    if (filledOsm.length) {
-      for (const [k, v] of filledOsm) {
-        html += `<tr><td>${humanKey(k)}</td><td>${v}</td></tr>`;
-      }
-    } else {
-      html += `<tr><td colspan="2" style="color:#94a3b8;font-style:italic">No additional OSM attributes</td></tr>`;
-    }
-    if (props.match_distance_m != null) {
-      html += `<tr><td>Match distance</td><td>${props.match_distance_m} m</td></tr>`;
-    }
-    html += `</table>`;
-
   } else {
-    // Single source
-    const skipKeys = new Set(['source','feature_id','osm_id','osm_type']);
+    const skip = new Set(['source','feature_id','osm_id','osm_type','district']);
     html += `<table class="detail-table">`;
-    for (const [k, v] of Object.entries(props)) {
-      if (skipKeys.has(k) || v === null || v === undefined) continue;
+    for (const [k,v] of Object.entries(props)) {
+      if (skip.has(k)||v==null) continue;
       html += `<tr><td>${humanKey(k)}</td><td>${v}</td></tr>`;
     }
     html += `</table>`;
@@ -441,152 +254,89 @@ function buildDetail(props) {
 }
 
 function showDetail(feature) {
-  const props = feature.properties;
-  const src   = props.source;
-  const name  = props.location_name || props.ylre_location_name || props.osm_name || 'Bench';
-  const srcLabel = {
-    'Helsinki_YLRE_street': 'YLRE Street',
-    'Helsinki_YLRE_park':   'YLRE Park',
-    'OpenStreetMap':        'OpenStreetMap',
-    'YLRE+OSM':             'YLRE + OSM',
-  }[src] || src;
-  const color = SOURCE_COLOR[src] || '#64748b';
-
+  const p = feature.properties;
+  const cat = sourceCategory(p.source);
+  const color = COLOR[cat];
+  const name = p.location_name||p.ylre_location_name||p.district||'Bench';
+  const label = cat==='city'?'City-registered (YLRE)':'Community-mapped (OSM)';
   document.getElementById('detail-title').innerHTML =
-    `<span id="detail-close" onclick="closeDetail()">✕</span>
-     <span style="color:${color}">■</span> ${name}
-     <div style="font-size:10px;font-weight:400;color:#64748b;margin-top:2px">${srcLabel}</div>`;
-  document.getElementById('detail-body').innerHTML = buildDetail(props);
+    `<span id="detail-close" onclick="closeDetail()">✕</span><span style="color:${color}">■</span> ${name}
+     <div style="font-size:10px;font-weight:400;color:#64748b;margin-top:2px">${label}</div>`;
+  document.getElementById('detail-body').innerHTML = buildDetail(p);
   document.getElementById('detail-panel').classList.add('visible');
-
-  // Re-attach close listener (re-rendered innerHTML)
   document.getElementById('detail-close').onclick = closeDetail;
 }
+function closeDetail() { document.getElementById('detail-panel').classList.remove('visible'); }
 
-function closeDetail() {
-  document.getElementById('detail-panel').classList.remove('visible');
-}
-
-// ── Get effective bench_type for filtering ────────────────────────────────────
-function getBenchType(props) {
-  return props.bench_type || props.ylre_bench_type || null;
-}
-function getAreaUsage(props) {
-  return props.area_usage || props.ylre_area_usage || null;
-}
-function getBackrest(props) {
-  return props.backrest || props.osm_backrest || null;
+function toggleFooter() {
+  const f = document.getElementById('footer');
+  f.classList.toggle('visible');
+  document.getElementById('footer-toggle').textContent = f.classList.contains('visible') ? '✕ Close' : 'ⓘ About this data';
 }
 
-// ── Source toggle ────────────────────────────────────────────────────────────
-function toggleSource(src) {
-  if (hiddenSources.has(src)) hiddenSources.delete(src);
-  else hiddenSources.add(src);
-  document.getElementById('toggle-' + {
-    'Helsinki_YLRE_street': 'street',
-    'Helsinki_YLRE_park':   'park',
-    'OpenStreetMap':        'osm',
-    'YLRE+OSM':             'merged',
-  }[src]).classList.toggle('disabled', hiddenSources.has(src));
+function getBenchType(p) { return p.bench_type||p.ylre_bench_type||null; }
+function getBackrest(p)  { return p.backrest||p.osm_backrest||null; }
+
+function toggleSource(cat) {
+  if (hiddenCats.has(cat)) hiddenCats.delete(cat); else hiddenCats.add(cat);
+  document.getElementById('toggle-'+cat).classList.toggle('disabled', hiddenCats.has(cat));
   applyFilters();
 }
 
-// ── Apply all filters ─────────────────────────────────────────────────────────
 function applyFilters() {
-  const typeFilter     = document.getElementById('filter-type').value;
-  const areaFilter     = document.getElementById('filter-area').value;
-  const backrestFilter = document.getElementById('filter-backrest').value;
-
+  const dist = document.getElementById('filter-district').value;
+  const type = document.getElementById('filter-type').value;
+  const back = document.getElementById('filter-backrest').value;
   cluster.clearLayers();
   let shown = 0;
-
-  for (const { marker, feature } of allMarkers) {
-    const p   = feature.properties;
-    const src = p.source;
-
-    if (hiddenSources.has(src)) continue;
-    if (typeFilter     && getBenchType(p) !== typeFilter) continue;
-    if (areaFilter     && getAreaUsage(p) !== areaFilter) continue;
-    if (backrestFilter && getBackrest(p) !== backrestFilter) continue;
-
+  for (const {marker, feature, cat} of allMarkers) {
+    const p = feature.properties;
+    if (hiddenCats.has(cat)) continue;
+    if (dist && p.district !== dist) continue;
+    if (type && getBenchType(p) !== type) continue;
+    if (back && getBackrest(p) !== back) continue;
     cluster.addLayer(marker);
     shown++;
   }
-
   document.getElementById('shown-count').textContent = shown.toLocaleString();
 }
 
 function resetFilters() {
-  document.getElementById('filter-type').value     = '';
-  document.getElementById('filter-area').value     = '';
-  document.getElementById('filter-backrest').value = '';
-  hiddenSources.clear();
-  ['street','park','osm','merged'].forEach(id =>
-    document.getElementById('toggle-' + id).classList.remove('disabled'));
+  ['filter-district','filter-type','filter-backrest'].forEach(id => document.getElementById(id).value = '');
+  hiddenCats.clear();
+  ['city','comm'].forEach(c => document.getElementById('toggle-'+c).classList.remove('disabled'));
   applyFilters();
 }
 
-// ── Populate area dropdown ───────────────────────────────────────────────────
-function populateAreaDropdown(features) {
-  const areas = new Set();
-  for (const f of features) {
-    const a = getAreaUsage(f.properties);
-    if (a) areas.add(a);
-  }
-  const sel = document.getElementById('filter-area');
-  [...areas].sort().forEach(a => {
-    const opt = document.createElement('option');
-    opt.value = opt.textContent = a;
-    sel.appendChild(opt);
-  });
-}
-
-// ── Load data ─────────────────────────────────────────────────────────────────
 fetch('helsinki_benches_deduped_en.json')
   .then(r => r.json())
   .then(data => {
     const features = data.features;
+    let nCity=0, nComm=0;
+    const districts = new Set();
+    for (const f of features) { if(f.properties.district) districts.add(f.properties.district); }
+    const sel = document.getElementById('filter-district');
+    [...districts].sort().forEach(d => { const o=document.createElement('option'); o.value=o.textContent=d; sel.appendChild(o); });
 
-    // Count by source
-    const counts = {};
-    for (const f of features) {
-      const s = f.properties.source;
-      counts[s] = (counts[s] || 0) + 1;
-    }
-    document.getElementById('count-street').textContent = (counts['Helsinki_YLRE_street'] || 0).toLocaleString();
-    document.getElementById('count-park').textContent   = (counts['Helsinki_YLRE_park']   || 0).toLocaleString();
-    document.getElementById('count-osm').textContent    = (counts['OpenStreetMap']         || 0).toLocaleString();
-    document.getElementById('count-merged').textContent = (counts['YLRE+OSM']              || 0).toLocaleString();
-    document.getElementById('all-count').textContent    = features.length.toLocaleString();
-
-    populateAreaDropdown(features);
-
-    // Build cluster group
-    cluster = L.markerClusterGroup({
-      maxClusterRadius: 50,
-      chunkedLoading: true,
-      spiderfyOnMaxZoom: true,
-    });
-
+    cluster = L.markerClusterGroup({ maxClusterRadius: 50, chunkedLoading: true });
     for (const feature of features) {
-      const [lon, lat] = feature.geometry.coordinates;
-      const src    = feature.properties.source;
-      const marker = L.marker([lat, lon], { icon: makeIcon(src) });
-
+      const [lon,lat] = feature.geometry.coordinates;
+      const cat = sourceCategory(feature.properties.source);
+      cat==='city' ? nCity++ : nComm++;
+      const marker = L.marker([lat,lon], { icon: makeIcon(cat) });
       marker.on('click', () => showDetail(feature));
-
-      allMarkers.push({ marker, feature });
+      allMarkers.push({ marker, feature, cat });
       cluster.addLayer(marker);
     }
-
     map.addLayer(cluster);
+    document.getElementById('count-city').textContent = nCity.toLocaleString();
+    document.getElementById('count-comm').textContent = nComm.toLocaleString();
+    document.getElementById('all-count').textContent  = features.length.toLocaleString();
     document.getElementById('shown-count').textContent = features.length.toLocaleString();
-    document.getElementById('loading').style.display = 'none';
+    document.getElementById('loading').style.display  = 'none';
   })
   .catch(err => {
-    document.getElementById('loading').innerHTML =
-      `<div style="color:#f87171;font-size:14px">Failed to load data:<br>${err.message}<br>
-       <small style="color:#94a3b8">Make sure helsinki_benches_deduped_en.json is in the same folder.</small></div>`;
+    document.getElementById('loading').innerHTML = `<div style="color:#f87171;font-size:14px">Failed to load data:<br>${err.message}</div>`;
   });
 </script>
 </body>
