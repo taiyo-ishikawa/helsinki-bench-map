@@ -308,7 +308,7 @@ function resetFilters() {
   applyFilters();
 }
 
-fetch('helsinki_benches_deduped_en.json')
+fetch('helsinki_benches_deduped_en.json?v=2')
   .then(r => r.json())
   .then(data => {
     const features = data.features;
