@@ -6,10 +6,11 @@
     "comm_count": 12,
     "area_km2": 0.3977,
     "bench_density": 357.05,
-    "population": null,
-    "pop_density": null,
-    "benches_per_100pop": null,
-    "comm_pct": 8.5
+    "population": 1716,
+    "pop_density": 4314.8,
+    "benches_per_100pop": 8.28,
+    "comm_pct": 8.5,
+    "avg_income": 34786
   },
   {
     "district": "KLUUVI",
@@ -42,10 +43,11 @@
     "comm_count": 32,
     "area_km2": 0.9489,
     "bench_density": 198.12,
-    "population": null,
-    "pop_density": null,
-    "benches_per_100pop": null,
-    "comm_pct": 17.0
+    "population": 7230,
+    "pop_density": 7619.3,
+    "benches_per_100pop": 2.6,
+    "comm_pct": 17.0,
+    "avg_income": 30668
   },
   {
     "district": "ALPPIHARJU",
@@ -66,10 +68,11 @@
     "comm_count": 114,
     "area_km2": 2.5239,
     "bench_density": 187.01,
-    "population": null,
-    "pop_density": null,
-    "benches_per_100pop": null,
-    "comm_pct": 24.2
+    "population": 5342,
+    "pop_density": 2116.6,
+    "benches_per_100pop": 8.84,
+    "comm_pct": 24.2,
+    "avg_income": 30132
   },
   {
     "district": "VANHAKAUPUNKI",
@@ -90,10 +93,11 @@
     "comm_count": 47,
     "area_km2": 1.3898,
     "bench_density": 161.17,
-    "population": null,
-    "pop_density": null,
-    "benches_per_100pop": null,
-    "comm_pct": 21.0
+    "population": 18484,
+    "pop_density": 13299.8,
+    "benches_per_100pop": 1.21,
+    "comm_pct": 21.0,
+    "avg_income": 24800
   },
   {
     "district": "PUNAVUORI",
@@ -114,10 +118,11 @@
     "comm_count": 26,
     "area_km2": 1.1246,
     "bench_density": 148.5,
-    "population": null,
-    "pop_density": null,
-    "benches_per_100pop": null,
-    "comm_pct": 15.6
+    "population": 7191,
+    "pop_density": 6394.3,
+    "benches_per_100pop": 2.32,
+    "comm_pct": 15.6,
+    "avg_income": 31048
   },
   {
     "district": "ULLANLINNA",
@@ -138,10 +143,11 @@
     "comm_count": 14,
     "area_km2": 1.2109,
     "bench_density": 124.7,
-    "population": null,
-    "pop_density": null,
-    "benches_per_100pop": null,
-    "comm_pct": 9.3
+    "population": 29474,
+    "pop_density": 24340.6,
+    "benches_per_100pop": 0.51,
+    "comm_pct": 9.3,
+    "avg_income": 24633
   },
   {
     "district": "TAKA-TÖÖLÖ",
@@ -150,10 +156,11 @@
     "comm_count": 52,
     "area_km2": 2.3329,
     "bench_density": 117.88,
-    "population": null,
-    "pop_density": null,
-    "benches_per_100pop": null,
-    "comm_pct": 18.9
+    "population": 16647,
+    "pop_density": 7135.8,
+    "benches_per_100pop": 1.65,
+    "comm_pct": 18.9,
+    "avg_income": 28848
   },
   {
     "district": "ETU-TÖÖLÖ",
@@ -162,10 +169,11 @@
     "comm_count": 46,
     "area_km2": 2.3439,
     "bench_density": 111.78,
-    "population": null,
-    "pop_density": null,
-    "benches_per_100pop": null,
-    "comm_pct": 17.6
+    "population": 17893,
+    "pop_density": 7633.9,
+    "benches_per_100pop": 1.46,
+    "comm_pct": 17.6,
+    "avg_income": 30659
   },
   {
     "district": "LÄNSISATAMA",
@@ -174,10 +182,11 @@
     "comm_count": 28,
     "area_km2": 5.9076,
     "bench_density": 106.98,
-    "population": null,
-    "pop_density": null,
-    "benches_per_100pop": null,
-    "comm_pct": 4.4
+    "population": 33676,
+    "pop_density": 5700.5,
+    "benches_per_100pop": 1.88,
+    "comm_pct": 4.4,
+    "avg_income": 27977
   },
   {
     "district": "RUSKEASUO",
@@ -186,10 +195,11 @@
     "comm_count": 18,
     "area_km2": 1.559,
     "bench_density": 85.95,
-    "population": null,
-    "pop_density": null,
-    "benches_per_100pop": null,
-    "comm_pct": 13.4
+    "population": 8339,
+    "pop_density": 5348.9,
+    "benches_per_100pop": 1.61,
+    "comm_pct": 13.4,
+    "avg_income": 25948
   },
   {
     "district": "KATAJANOKKA",
@@ -198,10 +208,11 @@
     "comm_count": 14,
     "area_km2": 1.8676,
     "bench_density": 85.14,
-    "population": null,
-    "pop_density": null,
-    "benches_per_100pop": null,
-    "comm_pct": 8.8
+    "population": 4932,
+    "pop_density": 2640.8,
+    "benches_per_100pop": 3.22,
+    "comm_pct": 8.8,
+    "avg_income": 30520
   },
   {
     "district": "LAAKSO",
@@ -210,10 +221,11 @@
     "comm_count": 2,
     "area_km2": 0.6924,
     "bench_density": 80.88,
-    "population": null,
-    "pop_density": null,
-    "benches_per_100pop": null,
-    "comm_pct": 3.6
+    "population": 7426,
+    "pop_density": 10725.0,
+    "benches_per_100pop": 0.75,
+    "comm_pct": 3.6,
+    "avg_income": 27120
   },
   {
     "district": "MEILAHTI",
@@ -222,10 +234,11 @@
     "comm_count": 91,
     "area_km2": 3.5473,
     "bench_density": 76.96,
-    "population": null,
-    "pop_density": null,
-    "benches_per_100pop": null,
-    "comm_pct": 33.3
+    "population": 134,
+    "pop_density": 37.8,
+    "benches_per_100pop": 203.73,
+    "comm_pct": 33.3,
+    "avg_income": 32243
   },
   {
     "district": "HERTTONIEMI",
@@ -234,10 +247,11 @@
     "comm_count": 73,
     "area_km2": 8.8043,
     "bench_density": 74.62,
-    "population": null,
-    "pop_density": null,
-    "benches_per_100pop": null,
-    "comm_pct": 11.1
+    "population": 28640,
+    "pop_density": 3253.0,
+    "benches_per_100pop": 2.29,
+    "comm_pct": 11.1,
+    "avg_income": 25240
   },
   {
     "district": "TOUKOLA",
@@ -246,10 +260,11 @@
     "comm_count": 33,
     "area_km2": 1.4894,
     "bench_density": 73.18,
-    "population": null,
-    "pop_density": null,
-    "benches_per_100pop": null,
-    "comm_pct": 30.3
+    "population": 13837,
+    "pop_density": 9290.3,
+    "benches_per_100pop": 0.79,
+    "comm_pct": 30.3,
+    "avg_income": 26788
   },
   {
     "district": "HAAGA",
@@ -258,10 +273,11 @@
     "comm_count": 47,
     "area_km2": 5.5208,
     "bench_density": 68.65,
-    "population": null,
-    "pop_density": null,
-    "benches_per_100pop": null,
-    "comm_pct": 12.4
+    "population": 25591,
+    "pop_density": 4635.4,
+    "benches_per_100pop": 1.48,
+    "comm_pct": 12.4,
+    "avg_income": 25448
   },
   {
     "district": "KAARELA",
@@ -270,10 +286,11 @@
     "comm_count": 202,
     "area_km2": 9.328,
     "bench_density": 66.68,
-    "population": null,
-    "pop_density": null,
-    "benches_per_100pop": null,
-    "comm_pct": 32.5
+    "population": 30667,
+    "pop_density": 3287.6,
+    "benches_per_100pop": 2.03,
+    "comm_pct": 32.5,
+    "avg_income": 24276
   },
   {
     "district": "KUMPULA",
@@ -294,10 +311,11 @@
     "comm_count": 8,
     "area_km2": 1.5013,
     "bench_density": 55.95,
-    "population": null,
-    "pop_density": null,
-    "benches_per_100pop": null,
-    "comm_pct": 9.5
+    "population": 5749,
+    "pop_density": 3829.3,
+    "benches_per_100pop": 1.46,
+    "comm_pct": 9.5,
+    "avg_income": 28782
   },
   {
     "district": "PUKINMÄKI",
@@ -306,10 +324,11 @@
     "comm_count": 25,
     "area_km2": 2.009,
     "bench_density": 55.75,
-    "population": null,
-    "pop_density": null,
-    "benches_per_100pop": null,
-    "comm_pct": 22.3
+    "population": 8962,
+    "pop_density": 4460.9,
+    "benches_per_100pop": 1.25,
+    "comm_pct": 22.3,
+    "avg_income": 23874
   },
   {
     "district": "KOSKELA",
@@ -318,10 +337,11 @@
     "comm_count": 17,
     "area_km2": 0.7784,
     "bench_density": 55.24,
-    "population": null,
-    "pop_density": null,
-    "benches_per_100pop": null,
-    "comm_pct": 39.5
+    "population": 4556,
+    "pop_density": 5853.0,
+    "benches_per_100pop": 0.94,
+    "comm_pct": 39.5,
+    "avg_income": 21890
   },
   {
     "district": "MALMI",
@@ -330,10 +350,11 @@
     "comm_count": 72,
     "area_km2": 9.0038,
     "bench_density": 52.53,
-    "population": null,
-    "pop_density": null,
-    "benches_per_100pop": null,
-    "comm_pct": 15.2
+    "population": 26171,
+    "pop_density": 2906.7,
+    "benches_per_100pop": 1.81,
+    "comm_pct": 15.2,
+    "avg_income": 23142
   },
   {
     "district": "PASILA",
@@ -342,10 +363,11 @@
     "comm_count": 51,
     "area_km2": 4.3922,
     "bench_density": 50.54,
-    "population": null,
-    "pop_density": null,
-    "benches_per_100pop": null,
-    "comm_pct": 23.0
+    "population": 13748,
+    "pop_density": 3130.1,
+    "benches_per_100pop": 1.61,
+    "comm_pct": 23.0,
+    "avg_income": 26708
   },
   {
     "district": "TAMMISALO",
@@ -378,10 +400,11 @@
     "comm_count": 9,
     "area_km2": 2.648,
     "bench_density": 43.81,
-    "population": null,
-    "pop_density": null,
-    "benches_per_100pop": null,
-    "comm_pct": 7.8
+    "population": 4050,
+    "pop_density": 1529.5,
+    "benches_per_100pop": 2.86,
+    "comm_pct": 7.8,
+    "avg_income": 32821
   },
   {
     "district": "OULUNKYLÄ",
@@ -390,10 +413,11 @@
     "comm_count": 67,
     "area_km2": 8.2042,
     "bench_density": 41.44,
-    "population": null,
-    "pop_density": null,
-    "benches_per_100pop": null,
-    "comm_pct": 19.7
+    "population": 25034,
+    "pop_density": 3051.4,
+    "benches_per_100pop": 1.36,
+    "comm_pct": 19.7,
+    "avg_income": 26416
   },
   {
     "district": "LAUTTASAARI",
@@ -402,10 +426,11 @@
     "comm_count": 241,
     "area_km2": 11.0078,
     "bench_density": 41.43,
-    "population": null,
-    "pop_density": null,
-    "benches_per_100pop": null,
-    "comm_pct": 52.9
+    "population": 24736,
+    "pop_density": 2247.1,
+    "benches_per_100pop": 1.84,
+    "comm_pct": 52.9,
+    "avg_income": 32201
   },
   {
     "district": "KÄPYLÄ",
@@ -414,10 +439,11 @@
     "comm_count": 31,
     "area_km2": 1.7708,
     "bench_density": 41.22,
-    "population": null,
-    "pop_density": null,
-    "benches_per_100pop": null,
-    "comm_pct": 42.5
+    "population": 7979,
+    "pop_density": 4505.9,
+    "benches_per_100pop": 0.91,
+    "comm_pct": 42.5,
+    "avg_income": 26924
   },
   {
     "district": "KAIVOPUISTO",
@@ -426,10 +452,11 @@
     "comm_count": 12,
     "area_km2": 2.4645,
     "bench_density": 40.98,
-    "population": null,
-    "pop_density": null,
-    "benches_per_100pop": null,
-    "comm_pct": 11.9
+    "population": 7845,
+    "pop_density": 3183.2,
+    "benches_per_100pop": 1.29,
+    "comm_pct": 11.9,
+    "avg_income": 32537
   },
   {
     "district": "PITÄJÄNMÄKI",
@@ -438,10 +465,11 @@
     "comm_count": 22,
     "area_km2": 4.4079,
     "bench_density": 39.02,
-    "population": null,
-    "pop_density": null,
-    "benches_per_100pop": null,
-    "comm_pct": 12.8
+    "population": 12808,
+    "pop_density": 2905.7,
+    "benches_per_100pop": 1.34,
+    "comm_pct": 12.8,
+    "avg_income": 25842
   },
   {
     "district": "MUNKKINIEMI",
@@ -450,10 +478,11 @@
     "comm_count": 40,
     "area_km2": 8.2361,
     "bench_density": 38.97,
-    "population": null,
-    "pop_density": null,
-    "benches_per_100pop": null,
-    "comm_pct": 12.5
+    "population": 20547,
+    "pop_density": 2494.7,
+    "benches_per_100pop": 1.56,
+    "comm_pct": 12.5,
+    "avg_income": 29957
   },
   {
     "district": "MELLUNKYLÄ",
@@ -462,10 +491,11 @@
     "comm_count": 59,
     "area_km2": 9.8097,
     "bench_density": 38.94,
-    "population": null,
-    "pop_density": null,
-    "benches_per_100pop": null,
-    "comm_pct": 15.4
+    "population": 37004,
+    "pop_density": 3772.2,
+    "benches_per_100pop": 1.03,
+    "comm_pct": 15.4,
+    "avg_income": 21421
   },
   {
     "district": "KONALA",
@@ -474,10 +504,11 @@
     "comm_count": 15,
     "area_km2": 2.3575,
     "bench_density": 36.9,
-    "population": null,
-    "pop_density": null,
-    "benches_per_100pop": null,
-    "comm_pct": 17.2
+    "population": 6548,
+    "pop_density": 2777.5,
+    "benches_per_100pop": 1.33,
+    "comm_pct": 17.2,
+    "avg_income": 25568
   },
   {
     "district": "SUUTARILA",
@@ -486,10 +517,11 @@
     "comm_count": 23,
     "area_km2": 5.6244,
     "bench_density": 36.63,
-    "population": null,
-    "pop_density": null,
-    "benches_per_100pop": null,
-    "comm_pct": 11.2
+    "population": 19762,
+    "pop_density": 3513.6,
+    "benches_per_100pop": 1.04,
+    "comm_pct": 11.2,
+    "avg_income": 25006
   },
   {
     "district": "VARTIOKYLÄ",
@@ -498,10 +530,11 @@
     "comm_count": 110,
     "area_km2": 12.1553,
     "bench_density": 33.4,
-    "population": null,
-    "pop_density": null,
-    "benches_per_100pop": null,
-    "comm_pct": 27.1
+    "population": 36832,
+    "pop_density": 3030.1,
+    "benches_per_100pop": 1.1,
+    "comm_pct": 27.1,
+    "avg_income": 24506
   },
   {
     "district": "TAPANINKYLÄ",
@@ -510,10 +543,11 @@
     "comm_count": 47,
     "area_km2": 4.8475,
     "bench_density": 32.39,
-    "population": null,
-    "pop_density": null,
-    "benches_per_100pop": null,
-    "comm_pct": 29.9
+    "population": 17840,
+    "pop_density": 3680.2,
+    "benches_per_100pop": 0.88,
+    "comm_pct": 29.9,
+    "avg_income": 28196
   },
   {
     "district": "VIIKKI",
@@ -522,10 +556,11 @@
     "comm_count": 68,
     "area_km2": 8.8754,
     "bench_density": 28.17,
-    "population": null,
-    "pop_density": null,
-    "benches_per_100pop": null,
-    "comm_pct": 27.2
+    "population": 10644,
+    "pop_density": 1199.3,
+    "benches_per_100pop": 2.35,
+    "comm_pct": 27.2,
+    "avg_income": 24952
   },
   {
     "district": "LAAJASALO",
@@ -534,10 +569,11 @@
     "comm_count": 45,
     "area_km2": 13.8563,
     "bench_density": 20.93,
-    "population": null,
-    "pop_density": null,
-    "benches_per_100pop": null,
-    "comm_pct": 15.5
+    "population": 21828,
+    "pop_density": 1575.3,
+    "benches_per_100pop": 1.33,
+    "comm_pct": 15.5,
+    "avg_income": 27991
   },
   {
     "district": "VUOSAARI",
@@ -546,10 +582,11 @@
     "comm_count": 199,
     "area_km2": 34.5597,
     "bench_density": 17.77,
-    "population": null,
-    "pop_density": null,
-    "benches_per_100pop": null,
-    "comm_pct": 32.4
+    "population": 38657,
+    "pop_density": 1118.6,
+    "benches_per_100pop": 1.59,
+    "comm_pct": 32.4,
+    "avg_income": 23836
   },
   {
     "district": "TUOMARINKYLÄ",
@@ -558,10 +595,11 @@
     "comm_count": 39,
     "area_km2": 10.6673,
     "bench_density": 16.59,
-    "population": null,
-    "pop_density": null,
-    "benches_per_100pop": null,
-    "comm_pct": 22.0
+    "population": 8771,
+    "pop_density": 822.2,
+    "benches_per_100pop": 2.02,
+    "comm_pct": 22.0,
+    "avg_income": 33814
   },
   {
     "district": "SUOMENLINNA",
@@ -570,10 +608,11 @@
     "comm_count": 78,
     "area_km2": 12.0351,
     "bench_density": 15.54,
-    "population": null,
-    "pop_density": null,
-    "benches_per_100pop": null,
-    "comm_pct": 41.7
+    "population": 694,
+    "pop_density": 57.7,
+    "benches_per_100pop": 26.95,
+    "comm_pct": 41.7,
+    "avg_income": 29801
   },
   {
     "district": "SUURMETSÄ",
@@ -582,10 +621,11 @@
     "comm_count": 18,
     "area_km2": 7.2312,
     "bench_density": 14.94,
-    "population": null,
-    "pop_density": null,
-    "benches_per_100pop": null,
-    "comm_pct": 16.7
+    "population": 14854,
+    "pop_density": 2054.2,
+    "benches_per_100pop": 0.73,
+    "comm_pct": 16.7,
+    "avg_income": 25582
   },
   {
     "district": "PAKILA",
@@ -594,10 +634,11 @@
     "comm_count": 11,
     "area_km2": 4.1305,
     "bench_density": 14.28,
-    "population": null,
-    "pop_density": null,
-    "benches_per_100pop": null,
-    "comm_pct": 18.6
+    "population": 10305,
+    "pop_density": 2494.9,
+    "benches_per_100pop": 0.57,
+    "comm_pct": 18.6,
+    "avg_income": 33702
   },
   {
     "district": "ÖSTERSUNDOM",
@@ -606,10 +647,11 @@
     "comm_count": 7,
     "area_km2": 7.823,
     "bench_density": 1.53,
-    "population": null,
-    "pop_density": null,
-    "benches_per_100pop": null,
-    "comm_pct": 58.3
+    "population": 1809,
+    "pop_density": 231.2,
+    "benches_per_100pop": 0.66,
+    "comm_pct": 58.3,
+    "avg_income": 32383
   },
   {
     "district": "KARHUSAARI",
@@ -630,10 +672,11 @@
     "comm_count": 0,
     "area_km2": 18.7184,
     "bench_density": 0.59,
-    "population": null,
-    "pop_density": null,
-    "benches_per_100pop": null,
-    "comm_pct": 0.0
+    "population": 316,
+    "pop_density": 16.9,
+    "benches_per_100pop": 3.48,
+    "comm_pct": 0.0,
+    "avg_income": 32024
   },
   {
     "district": "SALMENKALLIO",
@@ -702,10 +745,11 @@
     "comm_count": 0,
     "area_km2": 3.7969,
     "bench_density": 0.0,
-    "population": null,
-    "pop_density": null,
-    "benches_per_100pop": null,
-    "comm_pct": 0
+    "population": 2307,
+    "pop_density": 607.6,
+    "benches_per_100pop": 0.0,
+    "comm_pct": 0,
+    "avg_income": 35613
   },
   {
     "district": "VILLINKI",
