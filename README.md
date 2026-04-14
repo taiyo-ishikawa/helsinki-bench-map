@@ -57,7 +57,7 @@ deduplicate_benches.py           Merge YLRE+OSM duplicates within 5 m (scipy cKD
 add_district.py                  Assign kaupunginosa via point-in-polygon (shapely)
 add_spatial_attributes.py        is_waterfront — within 200 m of OSM coastline
 fix_osm_nature.py                is_nature — YLRE Viheralue polygon test (STRtree)
-classify_sidewalks.py            is_sidewalk — YLRE street source + Overpass footway proximity (10 m buffer)
+classify_sidewalks.py            is_sidewalk — Overpass footway proximity (10 m buffer) for YLRE street + OSM-only benches; YLRE park always False
         ↓  helsinki_benches_deduped_en.json  (12,752 benches)
 generate_district_boundaries.py  district_boundaries.json + district_stats.json (bench stats per district)
 add_age_data.py                  pct_65plus, pct_youth — Paavo PxWeb API → postal code centroids → district join
@@ -80,7 +80,7 @@ add_age_data.py                  pct_65plus, pct_youth — Paavo PxWeb API → p
 | Flag | Count | Share |
 |------|------:|------:|
 | `is_nature` — within YLRE green area polygon | 8,779 | 68.8 % |
-| `is_sidewalk` — YLRE street or within 10 m of OSM footway | 4,596 | 36.0 % |
+| `is_sidewalk` — within 10 m of OSM footway (YLRE street + OSM-only benches; plazas excluded) | 4,458 | 35.0 % |
 | `is_waterfront` — within 200 m of coastline | ~1,200 | ~9 % |
 
 **District statistics** (60 districts total):
