@@ -56,6 +56,11 @@
     .checkbox-row { display: flex; align-items: center; gap: 8px; font-size: 12px; color: #334155; cursor: pointer; }
     .checkbox-row input { width: 14px; height: 14px; accent-color: #3b82f6; cursor: pointer; }
     .badge { font-size: 9px; background: #f1f5f9; border: 1px solid #e2e8f0; border-radius: 3px; padding: 1px 5px; color: #64748b; }
+    .model-pills { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 6px; }
+    .model-pill { padding: 4px 9px; border-radius: 20px; border: 1px solid #cbd5e1; background: #f8fafc; color: #475569; font-size: 11px; cursor: pointer; transition: background .12s, color .12s, border-color .12s; white-space: nowrap; line-height: 1.4; }
+    .model-pill:hover { background: #e0f2fe; border-color: #93c5fd; }
+    .model-pill.active { background: #0d3b66; color: #fff; border-color: #0d3b66; }
+    .model-note { font-size: 10px; color: #94a3b8; margin-bottom: 8px; line-height: 1.4; }
     .btn-reset { width: 100%; padding: 7px; border: 1px solid #cbd5e1; border-radius: 6px; background: #f1f5f9; color: #475569; font-size: 12px; cursor: pointer; font-weight: 600; }
     .btn-reset:hover { background: #e2e8f0; }
     .legend-row { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 8px; font-size: 12px; color: #334155; }
@@ -266,6 +271,15 @@
         <option>Single-seat bench</option>
         <option>Table-bench combination</option>
       </select>
+      <label class="filter-label">Bench Model (YLRE data)</label>
+      <div class="model-note">Multi-select. When active, benches without model data are hidden.</div>
+      <div class="model-pills" id="model-pills">
+        <button class="model-pill" data-group="wood_steel" onclick="toggleModelGroup(this)">Wood &amp; steel<span class="badge" id="badge-mg-wood_steel" style="margin-left:4px;">–</span></button>
+        <button class="model-pill" data-group="steel"      onclick="toggleModelGroup(this)">Steel frame<span class="badge" id="badge-mg-steel" style="margin-left:4px;">–</span></button>
+        <button class="model-pill" data-group="forest"     onclick="toggleModelGroup(this)">Forest / natural<span class="badge" id="badge-mg-forest" style="margin-left:4px;">–</span></button>
+        <button class="model-pill" data-group="stone"      onclick="toggleModelGroup(this)">Stone &amp; slab<span class="badge" id="badge-mg-stone" style="margin-left:4px;">–</span></button>
+        <button class="model-pill" data-group="brand"      onclick="toggleModelGroup(this)">Named brands<span class="badge" id="badge-mg-brand" style="margin-left:4px;">–</span></button>
+      </div>
       <label class="filter-label">Backrest (OSM data)</label>
       <select id="filter-backrest" onchange="applyMapFilters()">
         <option value="">Any</option>
@@ -422,6 +436,9 @@ function sourceCategory(src) { return src === 'OpenStreetMap' ? 'comm' : 'city';
 let allMarkers = [], cluster = null, hiddenCats = new Set();
 let benchFeatures = [], districtStats = [], districtBoundaries = null;
 
+// Model group filter
+let selectedModelGroups = new Set();
+
 // Insight state
 let insightFilters = { source: 'all', location: 'all' };
 let densityMode    = 'top';   // 'top' | 'bottom'
@@ -544,12 +561,39 @@ function toggleSource(cat) {
 function getBenchType(p) { return p.bench_type||p.ylre_bench_type||null; }
 function getBackrest(p)  { return p.backrest||p.osm_backrest||null; }
 
+const MODEL_GROUP_RULES = [
+  ['wood_steel', m => /d3,|d8,|d12,|d13,|birch-leg|wooden seat/.test(m)],
+  ['steel',      m => /d1,|d10,|d11,|steel-leg/.test(m)],
+  ['forest',     m => /d5,|d6,|d7,|forest bench|forest/.test(m)],
+  ['stone',      m => /d2,|d16,|slab|stone base|tree-surround|concrete/.test(m)],
+  ['brand',      m => /benkert|victor stanley|sineu|monena|lehtovuori/.test(m)],
+];
+function getModelGroup(p) {
+  const m = (p.ylre_material || '').toLowerCase();
+  if (!m) return null;
+  for (const [grp, fn] of MODEL_GROUP_RULES) if (fn(m)) return grp;
+  return null; // blank / Other bench / Unknown → unclassified
+}
+
+function toggleModelGroup(btn) {
+  const g = btn.dataset.group;
+  if (selectedModelGroups.has(g)) {
+    selectedModelGroups.delete(g);
+    btn.classList.remove('active');
+  } else {
+    selectedModelGroups.add(g);
+    btn.classList.add('active');
+  }
+  applyMapFilters();
+}
+
 function applyMapFilters() {
   const dist  = document.getElementById('filter-district').value;
   const type  = document.getElementById('filter-type').value;
   const back  = document.getElementById('filter-backrest').value;
   const nature= document.getElementById('filter-nature').checked;
   const water = document.getElementById('filter-waterfront').checked;
+  const modelActive = selectedModelGroups.size > 0;
   cluster.clearLayers();
   let shown = 0;
   for (const {marker, feature, cat} of allMarkers) {
@@ -560,6 +604,10 @@ function applyMapFilters() {
     if (back   && getBackrest(p) !== back) continue;
     if (nature && !p.is_nature) continue;
     if (water  && !p.is_waterfront) continue;
+    if (modelActive) {
+      const grp = getModelGroup(p);
+      if (!grp || !selectedModelGroups.has(grp)) continue;
+    }
     cluster.addLayer(marker);
     shown++;
   }
@@ -569,6 +617,8 @@ function resetMapFilters() {
   ['filter-district','filter-type','filter-backrest'].forEach(id => document.getElementById(id).value = '');
   document.getElementById('filter-nature').checked = false;
   document.getElementById('filter-waterfront').checked = false;
+  selectedModelGroups.clear();
+  document.querySelectorAll('.model-pill.active').forEach(b => b.classList.remove('active'));
   hiddenCats.clear();
   ['city','comm'].forEach(c => document.getElementById('toggle-'+c).classList.remove('disabled'));
   applyMapFilters();
@@ -1005,18 +1055,25 @@ Promise.all([
   /* ── Map tab setup ──────────────────────────────────── */
   let nCity=0, nComm=0, nNature=0, nWF=0;
   const districts = new Set();
+  const modelGroupCounts = { wood_steel:0, steel:0, forest:0, stone:0, brand:0 };
 
   for (const f of benchFeatures) {
     const p = f.properties;
     if (p.district)      districts.add(p.district);
     if (p.is_nature)     nNature++;
     if (p.is_waterfront) nWF++;
+    const grp = getModelGroup(p);
+    if (grp && grp in modelGroupCounts) modelGroupCounts[grp]++;
   }
 
   const sel = document.getElementById('filter-district');
   [...districts].sort().forEach(d => { const o=document.createElement('option'); o.value=o.textContent=d; sel.appendChild(o); });
   document.getElementById('badge-nature').textContent     = nNature.toLocaleString();
   document.getElementById('badge-waterfront').textContent = nWF.toLocaleString();
+  for (const [grp, cnt] of Object.entries(modelGroupCounts)) {
+    const el = document.getElementById('badge-mg-' + grp);
+    if (el) el.textContent = cnt.toLocaleString();
+  }
 
   cluster = L.markerClusterGroup({ maxClusterRadius:50, chunkedLoading:true });
   for (const feature of benchFeatures) {
