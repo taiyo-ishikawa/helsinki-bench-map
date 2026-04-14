@@ -678,32 +678,65 @@ function toggleModelGroup(btn) {
 }
 
 function applyMapFilters() {
-  const dist  = document.getElementById('filter-district').value;
-  const type  = document.getElementById('filter-type').value;
-  const back  = document.getElementById('filter-backrest').value;
+  const dist     = document.getElementById('filter-district').value;
+  const type     = document.getElementById('filter-type').value;
+  const back     = document.getElementById('filter-backrest').value;
   const nature   = document.getElementById('filter-nature').checked;
   const water    = document.getElementById('filter-waterfront').checked;
   const sidewalk = document.getElementById('filter-sidewalk').checked;
   const modelActive = selectedModelGroups.size > 0;
+
+  // Check whether a bench passes all filters; individual flags can be overridden
+  function passes(p, cat, opts) {
+    const chkNature   = opts && 'nature'   in opts ? opts.nature   : nature;
+    const chkWater    = opts && 'water'    in opts ? opts.water    : water;
+    const chkSidewalk = opts && 'sidewalk' in opts ? opts.sidewalk : sidewalk;
+    const chkModel    = opts && 'model'    in opts ? opts.model    : modelActive;
+    if (hiddenCats.has(cat))                     return false;
+    if (dist && p.district !== dist)             return false;
+    if (type && getBenchType(p) !== type)        return false;
+    if (back && getBackrest(p) !== back)         return false;
+    if (chkNature   && !p.is_nature)             return false;
+    if (chkWater    && !p.is_waterfront)         return false;
+    if (chkSidewalk && !p.is_sidewalk)           return false;
+    if (chkModel) {
+      const grp = getModelGroup(p);
+      if (!grp || !selectedModelGroups.has(grp)) return false;
+    }
+    return true;
+  }
+
   cluster.clearLayers();
   let shown = 0;
+  let bNature = 0, bWF = 0, bSW = 0;
+  const bModel = { general:0, metal:0, stone:0, organic:0, brand:0 };
+
   for (const {marker, feature, cat} of allMarkers) {
     const p = feature.properties;
-    if (hiddenCats.has(cat)) continue;
-    if (dist   && p.district !== dist) continue;
-    if (type   && getBenchType(p) !== type) continue;
-    if (back   && getBackrest(p) !== back) continue;
-    if (nature   && !p.is_nature)     continue;
-    if (water    && !p.is_waterfront) continue;
-    if (sidewalk && !p.is_sidewalk)   continue;
-    if (modelActive) {
+
+    // Main filter — determines visible markers
+    if (passes(p, cat)) { cluster.addLayer(marker); shown++; }
+
+    // Badge counts: each badge ignores its own filter so it shows
+    // how many benches in the current filtered set have that attribute
+    if (passes(p, cat, {nature:   false})) { if (p.is_nature)     bNature++; }
+    if (passes(p, cat, {water:    false})) { if (p.is_waterfront) bWF++;     }
+    if (passes(p, cat, {sidewalk: false})) { if (p.is_sidewalk)   bSW++;     }
+    if (passes(p, cat, {model:    false})) {
       const grp = getModelGroup(p);
-      if (!grp || !selectedModelGroups.has(grp)) continue;
+      if (grp && grp in bModel) bModel[grp]++;
     }
-    cluster.addLayer(marker);
-    shown++;
   }
-  document.getElementById('shown-count').textContent = shown.toLocaleString();
+
+  document.getElementById('shown-count').textContent      = shown.toLocaleString();
+  document.getElementById('badge-nature').textContent     = bNature.toLocaleString();
+  document.getElementById('badge-waterfront').textContent = bWF.toLocaleString();
+  document.getElementById('badge-sidewalk').textContent   = bSW.toLocaleString();
+  for (const [grp, cnt] of Object.entries(bModel)) {
+    const el = document.getElementById('badge-mg-' + grp);
+    if (el) el.textContent = cnt.toLocaleString();
+  }
+
   // Auto-close sidebar on mobile after any filter change
   if (window.innerWidth <= 768) {
     document.getElementById('sidebar').classList.remove('open');
@@ -1217,29 +1250,16 @@ Promise.all([
   districtBoundaries = boundaries;
 
   /* ── Map tab setup ──────────────────────────────────── */
-  let nCity=0, nComm=0, nNature=0, nWF=0, nSW=0;
+  let nCity=0, nComm=0;
   const districts = new Set();
-  const modelGroupCounts = { general:0, metal:0, stone:0, organic:0, brand:0 };
 
   for (const f of benchFeatures) {
     const p = f.properties;
-    if (p.district)      districts.add(p.district);
-    if (p.is_nature)     nNature++;
-    if (p.is_waterfront) nWF++;
-    if (p.is_sidewalk)   nSW++;
-    const grp = getModelGroup(p);
-    if (grp && grp in modelGroupCounts) modelGroupCounts[grp]++;
+    if (p.district) districts.add(p.district);
   }
 
   const sel = document.getElementById('filter-district');
   [...districts].sort().forEach(d => { const o=document.createElement('option'); o.value=o.textContent=d; sel.appendChild(o); });
-  document.getElementById('badge-nature').textContent     = nNature.toLocaleString();
-  document.getElementById('badge-waterfront').textContent = nWF.toLocaleString();
-  document.getElementById('badge-sidewalk').textContent   = nSW.toLocaleString();
-  for (const [grp, cnt] of Object.entries(modelGroupCounts)) {
-    const el = document.getElementById('badge-mg-' + grp);
-    if (el) el.textContent = cnt.toLocaleString();
-  }
 
   cluster = L.markerClusterGroup({ maxClusterRadius:50, chunkedLoading:true });
   for (const feature of benchFeatures) {
@@ -1249,14 +1269,15 @@ Promise.all([
     const marker = L.marker([lat,lon], {icon:makeIcon(cat)});
     marker.on('click', ()=>showDetail(feature));
     allMarkers.push({marker,feature,cat});
-    cluster.addLayer(marker);
   }
   map.addLayer(cluster);
 
   document.getElementById('count-city').textContent = nCity.toLocaleString();
   document.getElementById('count-comm').textContent = nComm.toLocaleString();
   document.getElementById('all-count').textContent  = benchFeatures.length.toLocaleString();
-  document.getElementById('shown-count').textContent= benchFeatures.length.toLocaleString();
+
+  // Initial filter application — populates badges and adds markers to cluster
+  applyMapFilters();
 
   /* ── Insight initial render ─────────────────────────── */
   if (districtStats.length) updateInsightCharts();
