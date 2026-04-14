@@ -164,8 +164,24 @@
     .no-data-msg { font-size: 13px; color: #94a3b8; text-align: center; padding: 40px 20px; font-style: italic; }
 
     /* ── Footer ────────────────────────────────────────── */
-    #footer { background: #1e293b; color: #94a3b8; font-size: 11px; line-height: 1.7; padding: 18px 24px; flex-shrink: 0; display: none; }
-    #footer.visible { display: block; }
+    #footer {
+      position: fixed; inset: 0; z-index: 800;
+      background: rgba(0,0,0,.45);
+      display: none; align-items: flex-end;
+    }
+    #footer.visible { display: flex; }
+    #footer-inner {
+      background: #1e293b; color: #94a3b8;
+      font-size: 11px; line-height: 1.7;
+      padding: 18px 24px 24px;
+      width: 100%; max-height: 70vh;
+      overflow-y: auto;
+    }
+    #footer-close {
+      float: right; cursor: pointer; font-size: 18px;
+      color: #94a3b8; margin-left: 8px;
+    }
+    #footer-close:hover { color: #e2e8f0; }
     #footer-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
     #footer h3 { color: #e2e8f0; font-size: 12px; font-weight: 700; margin-bottom: 6px; margin-top: 12px; }
     #footer h3:first-child { margin-top: 0; }
@@ -213,6 +229,7 @@
       #insight-map { height: 260px; }
       #insight-heatmap { height: 340px; }
       #footer-grid { grid-template-columns: 1fr; }
+      #footer-inner { max-height: 85vh; }
     }
     @media (max-width: 480px) {
       .kpi-grid { grid-template-columns: repeat(2, 1fr); }
@@ -418,8 +435,10 @@
   </div><!-- /insight-scroll -->
 </div><!-- /tab-insight -->
 
-<!-- ── Footer ──────────────────────────────────────────────── -->
-<div id="footer">
+<!-- ── Footer overlay ─────────────────────────────────────── -->
+<div id="footer" onclick="if(event.target===this)toggleFooter()">
+  <div id="footer-inner">
+  <span id="footer-close" onclick="toggleFooter()">✕</span>
   <div id="footer-grid">
     <div>
       <h3>Data Sources</h3>
@@ -454,7 +473,8 @@
       Source code: <a href="https://github.com/taiyo-ishikawa/helsinki-bench-map" target="_blank">github.com/taiyo-ishikawa/helsinki-bench-map</a>
     </div>
   </div>
-</div>
+  </div><!-- /footer-inner -->
+</div><!-- /footer overlay -->
 
 <script>
 /* ════════════════════════════════════════════════════════
