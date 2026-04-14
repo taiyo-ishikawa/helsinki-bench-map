@@ -668,6 +668,10 @@ function applyMapFilters() {
     shown++;
   }
   document.getElementById('shown-count').textContent = shown.toLocaleString();
+  // Auto-close sidebar on mobile after any filter change
+  if (window.innerWidth <= 768) {
+    document.getElementById('sidebar').classList.remove('open');
+  }
 }
 function resetMapFilters() {
   ['filter-district','filter-type','filter-backrest'].forEach(id => document.getElementById(id).value = '');
