@@ -110,7 +110,8 @@
     .fbar-btn.active { background: #1d4ed8; color: #fff; border-color: #1d4ed8; }
     .fbar-btn.active-comm { background: #ea580c; color: #fff; border-color: #ea580c; }
     .fbar-btn.active-nature { background: #16a34a; color: #fff; border-color: #16a34a; }
-    .fbar-btn.active-water { background: #0284c7; color: #fff; border-color: #0284c7; }
+    .fbar-btn.active-water     { background: #0284c7; color: #fff; border-color: #0284c7; }
+    .fbar-btn.active-sidewalk  { background: #78716c; color: #fff; border-color: #78716c; }
     .fbar-divider { width: 1px; height: 24px; background: #e2e8f0; }
     #insight-filter-count { margin-left: auto; font-size: 11px; color: #64748b; white-space: nowrap; }
     #insight-filter-count strong { color: #0f172a; }
@@ -306,6 +307,7 @@
       <div class="checkbox-group">
         <label class="checkbox-row"><input type="checkbox" id="filter-nature"      onchange="applyMapFilters()"> 🌿 Nature / Park <span class="badge" id="badge-nature">–</span></label>
         <label class="checkbox-row"><input type="checkbox" id="filter-waterfront"  onchange="applyMapFilters()"> 🌊 Waterfront    <span class="badge" id="badge-waterfront">–</span></label>
+        <label class="checkbox-row"><input type="checkbox" id="filter-sidewalk"    onchange="applyMapFilters()"> 🚶 Sidewalk      <span class="badge" id="badge-sidewalk">–</span></label>
       </div>
       <button class="btn-reset" onclick="resetMapFilters()">Reset all filters</button>
     </div>
@@ -341,6 +343,7 @@
         <button class="fbar-btn active"       data-loc="all"        onclick="setInsightFilter('location','all',this)">All</button>
         <button class="fbar-btn active-nature" data-loc="nature"    onclick="setInsightFilter('location','nature',this)" style="background:#f0fdf4;border-color:#86efac;color:#15803d;">🌿 Nature</button>
         <button class="fbar-btn active-water"  data-loc="waterfront" onclick="setInsightFilter('location','waterfront',this)" style="background:#f0f9ff;border-color:#7dd3fc;color:#0369a1;">🌊 Waterfront</button>
+        <button class="fbar-btn"              data-loc="sidewalk"   onclick="setInsightFilter('location','sidewalk',this)"   style="background:#f9fafb;border-color:#d1d5db;color:#6b7280;">🚶 Sidewalk</button>
       </div>
       <div id="insight-filter-count" style="margin-left:auto;font-size:11px;color:#64748b;white-space:nowrap;">
         <strong id="ifc-count">–</strong> benches · <strong id="ifc-districts">–</strong> districts
@@ -403,6 +406,8 @@
             <div class="di-item"><div class="di-val" id="di-pop-dens">–</div><div class="di-lab">Residents / km²</div></div>
             <div class="di-item"><div class="di-val" id="di-income">–</div><div class="di-lab">Median income / yr</div></div>
             <div class="di-item"><div class="di-val" id="di-comm-pct">–</div><div class="di-lab">Community-mapped %</div></div>
+            <div class="di-item"><div class="di-val" id="di-age65">–</div><div class="di-lab">Aged 65+ (%)</div></div>
+            <div class="di-item"><div class="di-val" id="di-youth">–</div><div class="di-lab">Aged 0–17 (%)</div></div>
           </div>
         </div>
       </div>
@@ -431,6 +436,20 @@
       </div>
     </div>
 
+    <!-- Row 4: Age demographic scatter plots -->
+    <div class="chart-row row-1-1">
+      <div class="chart-card">
+        <div class="chart-title">% Elderly (65+) vs. Bench Density</div>
+        <div class="chart-desc">Do districts with more older residents have more benches? Each dot = one district.</div>
+        <div style="position:relative;height:270px"><canvas id="chart-scatter-age65"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">% Youth (0–17) vs. Bench Density</div>
+        <div class="chart-desc">Relationship between share of children / teens and bench provision.</div>
+        <div style="position:relative;height:270px"><canvas id="chart-scatter-youth"></canvas></div>
+      </div>
+    </div>
+
   </div><!-- /insight-inner -->
   </div><!-- /insight-scroll -->
 </div><!-- /tab-insight -->
@@ -455,8 +474,9 @@
       <h3>Classification</h3>
       <strong>City-registered</strong> — YLRE official registry (street &amp; park). Includes YLRE+OSM matched pairs (5 m threshold).<br><br>
       <strong>Community-mapped</strong> — OSM benches absent from YLRE registry.<br><br>
-      <strong>Nature / Park</strong> — YLRE park layer benches or OSM benches within park/forest polygons.<br><br>
+      <strong>Nature / Park</strong> — YLRE park layer benches or OSM benches within park/forest polygons (YLRE Viheralue WFS).<br><br>
       <strong>Waterfront</strong> — Within 200 m of the Baltic Sea coastline (OSM coastline data).<br><br>
+      <strong>Sidewalk</strong> — YLRE street-registered benches (<code>YLRE_Katuosat_piste</code>) or OSM benches within 10 m of an OSM footway, path, or pedestrian way (Overpass API, April 2026). Covers 4,596 benches (36%).<br><br>
       <h3>Bench Model Groups</h3>
       Derived from the <code>ylre_material</code> field in YLRE data. Only city-registered benches carry model information; OSM-only benches and records with blank or unrecognised values are excluded when any model group filter is active. Five groups are defined:<br><br>
       <strong>Wood &amp; Steel</strong> (666 benches) — Helsinki's most widespread public bench type: a wooden seat paired with a durable steel or stainless-steel frame. Models: HKI-D1 (steel-leg street bench, incl. removable variant), D3 (standard accessible bench), D4 (basic single chair), D12 (general bench, wooden seat &amp; steel frame), D13 (general chair, wooden seat &amp; steel frame). Materials: dense pine (<em>mänty</em>) or oak (<em>tammi</em>) seat; hot-dip galvanised and powder-coated steel frame.<br><br>
@@ -469,7 +489,8 @@
       <h3>Methodology</h3>
       Data collected April 2026. Finnish → English translation. EPSG:3879 → WGS84 reprojection (pyproj).<br><br>
       <strong>Deduplication:</strong> 5 m threshold (scipy cKDTree). 3,040 merged YLRE+OSM pairs.<br><br>
-      <strong>District stats:</strong> Areas in EPSG:3067. Population aggregated from 84 Helsinki postal code areas (44/60 districts matched).<br><br>
+      <strong>District stats:</strong> Areas in EPSG:3067. Population &amp; age data aggregated from 84 Helsinki postal code areas (45/60 districts matched via spatial centroid join with Helsinki WFS postal code polygons).<br><br>
+      <strong>Age data:</strong> Statistics Finland Paavo 2023 (<code>paavo_pxt_12ey</code>). % 65+ = sum of 65–69, 70–74, 75–79, 80–84, 85+ groups. % 0–17 = sum of 0–2, 3–6, 7–12, 13–15, 16–17 groups.<br><br>
       Source code: <a href="https://github.com/taiyo-ishikawa/helsinki-bench-map" target="_blank">github.com/taiyo-ishikawa/helsinki-bench-map</a>
     </div>
   </div>
@@ -564,6 +585,7 @@ function buildDetail(props) {
   if (props.district)      badges.push(`📍 ${props.district}`);
   if (props.is_nature)     badges.push('🌿 Nature/Park');
   if (props.is_waterfront) badges.push('🌊 Waterfront');
+  if (props.is_sidewalk)    badges.push('🚶 Sidewalk');
   if (badges.length) {
     html += `<div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:10px;">`;
     badges.forEach(b => html += `<span style="background:#f1f5f9;border-radius:4px;padding:2px 8px;font-size:11px;color:#475569;">${b}</span>`);
@@ -647,8 +669,9 @@ function applyMapFilters() {
   const dist  = document.getElementById('filter-district').value;
   const type  = document.getElementById('filter-type').value;
   const back  = document.getElementById('filter-backrest').value;
-  const nature= document.getElementById('filter-nature').checked;
-  const water = document.getElementById('filter-waterfront').checked;
+  const nature   = document.getElementById('filter-nature').checked;
+  const water    = document.getElementById('filter-waterfront').checked;
+  const sidewalk = document.getElementById('filter-sidewalk').checked;
   const modelActive = selectedModelGroups.size > 0;
   cluster.clearLayers();
   let shown = 0;
@@ -658,8 +681,9 @@ function applyMapFilters() {
     if (dist   && p.district !== dist) continue;
     if (type   && getBenchType(p) !== type) continue;
     if (back   && getBackrest(p) !== back) continue;
-    if (nature && !p.is_nature) continue;
-    if (water  && !p.is_waterfront) continue;
+    if (nature   && !p.is_nature)     continue;
+    if (water    && !p.is_waterfront) continue;
+    if (sidewalk && !p.is_sidewalk)   continue;
     if (modelActive) {
       const grp = getModelGroup(p);
       if (!grp || !selectedModelGroups.has(grp)) continue;
@@ -675,8 +699,9 @@ function applyMapFilters() {
 }
 function resetMapFilters() {
   ['filter-district','filter-type','filter-backrest'].forEach(id => document.getElementById(id).value = '');
-  document.getElementById('filter-nature').checked = false;
+  document.getElementById('filter-nature').checked     = false;
   document.getElementById('filter-waterfront').checked = false;
+  document.getElementById('filter-sidewalk').checked   = false;
   selectedModelGroups.clear();
   document.querySelectorAll('.model-pill.active').forEach(b => b.classList.remove('active'));
   hiddenCats.clear();
@@ -694,12 +719,13 @@ function setInsightFilter(type, value, btn) {
     b.classList.remove('active');
     if (b.dataset.loc === 'nature')     { b.style.background='#f0fdf4'; b.style.borderColor='#86efac'; b.style.color='#15803d'; }
     if (b.dataset.loc === 'waterfront') { b.style.background='#f0f9ff'; b.style.borderColor='#7dd3fc'; b.style.color='#0369a1'; }
+    if (b.dataset.loc === 'sidewalk')   { b.style.background='#f9fafb'; b.style.borderColor='#d1d5db'; b.style.color='#6b7280'; }
     if (b.dataset.src === 'city' || b.dataset.src === 'comm') { b.style.cssText=''; }
     if (b.dataset.itype) { b.style.cssText=''; }
   });
   btn.classList.add('active');
   // Active accent colors
-  const ACCENT = { city:'#1d4ed8', comm:'#ea580c', nature:'#16a34a', waterfront:'#0284c7' };
+  const ACCENT = { city:'#1d4ed8', comm:'#ea580c', nature:'#16a34a', waterfront:'#0284c7', sidewalk:'#78716c' };
   const col = ACCENT[value] || '#1d4ed8';
   btn.style.cssText = `background:${col};color:#fff;border-color:${col};`;
 
@@ -740,6 +766,7 @@ function getFilteredBenches() {
     if (insightFilters.source === 'comm' && cat !== 'comm') return false;
     if (insightFilters.location === 'nature'     && !p.is_nature)     return false;
     if (insightFilters.location === 'waterfront' && !p.is_waterfront) return false;
+    if (insightFilters.location === 'sidewalk'   && !p.is_sidewalk)   return false;
     if (insightFilters.type !== 'all') {
       const t = getBenchType(p);
       if (t !== ITYPE_MAP[insightFilters.type]) return false;
@@ -820,6 +847,8 @@ function selectDistrict(district, filteredStats) {
   document.getElementById('di-pop-dens').textContent = baseStat?.pop_density ? baseStat.pop_density.toFixed(0) : '–';
   document.getElementById('di-income').textContent   = baseStat?.avg_income  ? '€' + baseStat.avg_income.toLocaleString() : '–';
   document.getElementById('di-comm-pct').textContent = baseStat?.comm_pct != null ? baseStat.comm_pct + '%' : '–';
+  document.getElementById('di-age65').textContent    = baseStat?.pct_65plus != null ? baseStat.pct_65plus + '%' : '–';
+  document.getElementById('di-youth').textContent    = baseStat?.pct_youth  != null ? baseStat.pct_youth  + '%' : '–';
   document.getElementById('district-info-card').classList.add('visible');
 }
 
@@ -1061,6 +1090,14 @@ function updateInsightCharts() {
   rebuildScatter('chart-scatter-inc', fStats, 'avg_income', 'bench_density',
     'Median income (€/year)', 'Bench density (benches/km²)');
 
+  /* ── Scatter: % elderly (65+) ───────────────────────── */
+  rebuildScatter('chart-scatter-age65', fStats, 'pct_65plus', 'bench_density',
+    '% Population aged 65+ (%)', 'Bench density (benches/km²)');
+
+  /* ── Scatter: % youth (0–17) ────────────────────────── */
+  rebuildScatter('chart-scatter-youth', fStats, 'pct_youth', 'bench_density',
+    '% Population aged 0–17 (%)', 'Bench density (benches/km²)');
+
   /* ── Update selected district info if one is active ── */
   if (selectedDistrict) selectDistrict(selectedDistrict, fStats);
 
@@ -1132,8 +1169,8 @@ function rebuildScatter(canvasId, stats, xKey, yKey, xLabel, yLabel) {
    Data loading
 ════════════════════════════════════════════════════════ */
 Promise.all([
-  fetch('helsinki_benches_deduped_en.json?v=4').then(r=>r.json()),
-  fetch('district_stats.json?v=2').then(r=>r.json()).catch(()=>[]),
+  fetch('helsinki_benches_deduped_en.json?v=5').then(r=>r.json()),
+  fetch('district_stats.json?v=3').then(r=>r.json()).catch(()=>[]),
   fetch('district_boundaries.json?v=2').then(r=>r.json()).catch(()=>null),
 ])
 .then(([benchData, stats, boundaries]) => {
@@ -1142,7 +1179,7 @@ Promise.all([
   districtBoundaries = boundaries;
 
   /* ── Map tab setup ──────────────────────────────────── */
-  let nCity=0, nComm=0, nNature=0, nWF=0;
+  let nCity=0, nComm=0, nNature=0, nWF=0, nSW=0;
   const districts = new Set();
   const modelGroupCounts = { general:0, metal:0, stone:0, organic:0, brand:0 };
 
@@ -1151,6 +1188,7 @@ Promise.all([
     if (p.district)      districts.add(p.district);
     if (p.is_nature)     nNature++;
     if (p.is_waterfront) nWF++;
+    if (p.is_sidewalk)   nSW++;
     const grp = getModelGroup(p);
     if (grp && grp in modelGroupCounts) modelGroupCounts[grp]++;
   }
@@ -1159,6 +1197,7 @@ Promise.all([
   [...districts].sort().forEach(d => { const o=document.createElement('option'); o.value=o.textContent=d; sel.appendChild(o); });
   document.getElementById('badge-nature').textContent     = nNature.toLocaleString();
   document.getElementById('badge-waterfront').textContent = nWF.toLocaleString();
+  document.getElementById('badge-sidewalk').textContent   = nSW.toLocaleString();
   for (const [grp, cnt] of Object.entries(modelGroupCounts)) {
     const el = document.getElementById('badge-mg-' + grp);
     if (el) el.textContent = cnt.toLocaleString();
