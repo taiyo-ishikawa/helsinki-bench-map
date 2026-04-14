@@ -486,7 +486,7 @@
       <strong>City-registered</strong> — YLRE official registry (street &amp; park). Includes YLRE+OSM matched pairs (5 m threshold).<br><br>
       <strong>Community-mapped</strong> — OSM benches absent from YLRE registry.<br><br>
       <strong>Nature / Park</strong> — YLRE park layer benches or OSM benches within park/forest polygons (YLRE Viheralue WFS).<br><br>
-      <strong>Waterfront</strong> — Within 200 m of the Baltic Sea coastline (OSM coastline data).<br><br>
+      <strong>Waterfront</strong> — Within 50 m of the Baltic Sea coastline (OSM coastline data).<br><br>
       <strong>Sidewalk</strong> — Benches within 10 m of an OSM footway, path, pedestrian way, or cycle path open to pedestrians (Overpass API, April 2026). Applied to both YLRE street-registered (<code>YLRE_Katuosat_piste</code>) and OSM-only benches; YLRE park benches (<code>YLRE_Viherosat_piste</code>) are always excluded. This proximity check ensures that plaza and square benches in the Katuosat layer are not misclassified as sidewalk benches. Covers 4,458 benches (35%).<br><br>
       <h3>Bench Model Groups</h3>
       Derived from the <code>ylre_material</code> field in YLRE data. Only city-registered benches carry model information; OSM-only benches and records with blank or unrecognised values are excluded when any model group filter is active. Five groups are defined:<br><br>
@@ -1240,8 +1240,8 @@ function rebuildScatter(canvasId, stats, xKey, yKey, xLabel, yLabel) {
    Data loading
 ════════════════════════════════════════════════════════ */
 Promise.all([
-  fetch('helsinki_benches_deduped_en.json?v=6').then(r=>r.json()),
-  fetch('district_stats.json?v=3').then(r=>r.json()).catch(()=>[]),
+  fetch('helsinki_benches_deduped_en.json?v=7').then(r=>r.json()),
+  fetch('district_stats.json?v=4').then(r=>r.json()).catch(()=>[]),
   fetch('district_boundaries.json?v=2').then(r=>r.json()).catch(()=>null),
 ])
 .then(([benchData, stats, boundaries]) => {

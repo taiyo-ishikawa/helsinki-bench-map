@@ -81,7 +81,7 @@ add_age_data.py                  pct_65plus, pct_youth — Paavo PxWeb API → p
 |------|------:|------:|
 | `is_nature` — within YLRE green area polygon | 8,779 | 68.8 % |
 | `is_sidewalk` — within 10 m of OSM footway (YLRE street + OSM-only benches; plazas excluded) | 4,458 | 35.0 % |
-| `is_waterfront` — within 200 m of coastline | ~1,200 | ~9 % |
+| `is_waterfront` — within 50 m of coastline | 1,746 | 13.7 % |
 
 **District statistics** (60 districts total):
 - 45 districts with population & age data (Statistics Finland Paavo 2023)

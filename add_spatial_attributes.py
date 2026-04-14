@@ -30,7 +30,7 @@ OVERPASS_URLS = [
     "https://maps.mail.ru/osm/tools/overpass/api/interpreter",
 ]
 BBOX = "60.10,24.82,60.35,25.25"   # south,west,north,east
-WATERFRONT_M = 200.0                # metres from coastline
+WATERFRONT_M = 50.0                 # metres from coastline
 
 _wgs84_to_3067  = Transformer.from_crs("EPSG:4326", "EPSG:3067", always_xy=True)
 _3879_to_wgs84  = Transformer.from_crs("EPSG:3879", "EPSG:4326", always_xy=True)
