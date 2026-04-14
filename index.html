@@ -11,6 +11,7 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
   <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+  <script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
 
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -133,6 +134,9 @@
 
     /* Mini map */
     #insight-map { width: 100%; height: 300px; border-radius: 6px; background: #e2e8f0; }
+
+    /* Heatmap */
+    #insight-heatmap { width: 100%; height: 460px; border-radius: 6px; background: #e2e8f0; }
 
     /* District info panel */
     #district-info-card {
@@ -348,6 +352,15 @@
       </div>
     </div>
 
+    <!-- Row 3: Heatmap -->
+    <div class="chart-row">
+      <div class="chart-card" style="flex:1;">
+        <div class="chart-title">Bench Density Heatmap</div>
+        <div class="chart-desc">Spatial distribution of filtered benches. Zoom and pan freely.</div>
+        <div id="insight-heatmap"></div>
+      </div>
+    </div>
+
   </div><!-- /insight-inner -->
   </div><!-- /insight-scroll -->
 </div><!-- /tab-insight -->
@@ -404,6 +417,8 @@ let chartDensity = null, chartScatterPop = null, chartScatterInc = null;
 // Mini map
 let insightMapInstance = null, districtLayers = {}, geoJsonLayer = null;
 let insightMapReady = false;
+// Heatmap
+let heatmapInstance = null, heatmapLayer = null;
 
 /* ════════════════════════════════════════════════════════
    Main Leaflet map
@@ -438,6 +453,11 @@ function showTab(name) {
       initInsightMap();
     } else if (insightMapInstance) {
       setTimeout(() => insightMapInstance.invalidateSize(), 50);
+    }
+    if (!heatmapInstance && benchFeatures.length) {
+      initHeatmap();
+    } else if (heatmapInstance) {
+      setTimeout(() => heatmapInstance.invalidateSize(), 50);
     }
   }
 }
@@ -686,6 +706,34 @@ function initInsightMap() {
 }
 
 /* ════════════════════════════════════════════════════════
+   Heatmap (Insight)
+════════════════════════════════════════════════════════ */
+function initHeatmap() {
+  heatmapInstance = L.map('insight-heatmap', { zoomControl: true, attributionControl: false })
+    .setView([60.20, 24.96], 12);
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 18 })
+    .addTo(heatmapInstance);
+  updateHeatmap();
+}
+
+function updateHeatmap() {
+  if (!heatmapInstance) return;
+  const filtered = getFilteredBenches();
+  const pts = filtered.map(f => {
+    const [lon, lat] = f.geometry.coordinates;
+    return [lat, lon];
+  });
+  if (heatmapLayer) heatmapInstance.removeLayer(heatmapLayer);
+  heatmapLayer = L.heatLayer(pts, {
+    radius: 18,
+    blur: 20,
+    maxZoom: 17,
+    max: 1.0,
+    gradient: { 0.2: '#0ea5e9', 0.45: '#22c55e', 0.65: '#eab308', 0.85: '#f97316', 1.0: '#ef4444' },
+  }).addTo(heatmapInstance);
+}
+
+/* ════════════════════════════════════════════════════════
    Chart helpers
 ════════════════════════════════════════════════════════ */
 const GRID = '#e2e8f0', TXT = '#64748b';
@@ -849,6 +897,9 @@ function updateInsightCharts() {
 
   /* ── Update selected district info if one is active ── */
   if (selectedDistrict) selectDistrict(selectedDistrict, fStats);
+
+  /* ── Heatmap ─────────────────────────────────────── */
+  updateHeatmap();
 }
 
 function rebuildScatter(canvasId, stats, xKey, yKey, xLabel, yLabel) {
