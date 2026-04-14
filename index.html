@@ -921,6 +921,21 @@ function selectDistrict(district, filteredStats) {
   document.getElementById('di-comm-pct').textContent = baseStat?.comm_pct != null ? baseStat.comm_pct + '%' : '–';
   document.getElementById('di-age65').textContent    = baseStat?.pct_65plus != null ? baseStat.pct_65plus + '%' : '–';
   document.getElementById('di-youth').textContent    = baseStat?.pct_youth  != null ? baseStat.pct_youth  + '%' : '–';
+
+  updateHeatmap();
+}
+
+function clearDistrict() {
+  selectedDistrict = null;
+  refreshMapStyles();
+  const diName = document.getElementById('di-name');
+  diName.textContent = 'Click a bar or district outline to see details';
+  diName.style.cssText = 'color:#94a3b8;font-weight:500;font-size:12px;';
+  ['di-benches','di-density','di-pop','di-pop-dens','di-income','di-comm-pct','di-age65','di-youth']
+    .forEach(id => { document.getElementById(id).textContent = '–'; });
+  updateHeatmap();
+  // Reset heatmap view to Helsinki
+  if (heatmapInstance) heatmapInstance.setView([60.20, 24.96], 11);
 }
 
 /* ════════════════════════════════════════════════════════
@@ -951,6 +966,7 @@ function initInsightMap() {
           layer.unbindTooltip();
         },
         click: () => {
+          if (d === selectedDistrict) { clearDistrict(); return; }
           const filtered = computeDistrictStats(getFilteredBenches());
           selectDistrict(d, filtered);
         }
@@ -982,7 +998,10 @@ function initHeatmap() {
 
 function updateHeatmap() {
   if (!heatmapInstance) return;
-  const filtered = getFilteredBenches();
+  let filtered = getFilteredBenches();
+  if (selectedDistrict) {
+    filtered = filtered.filter(f => f.properties.district === selectedDistrict);
+  }
   const pts = filtered.map(f => {
     const [lon, lat] = f.geometry.coordinates;
     return [lat, lon];
@@ -997,6 +1016,11 @@ function updateHeatmap() {
     minOpacity: 0.04,
     gradient: { 0.25: '#7c3aed', 0.5: '#db2777', 0.72: '#f97316', 1.0: '#dc2626' },
   }).addTo(heatmapInstance);
+
+  // Fit heatmap view to the selected district boundary
+  if (selectedDistrict && districtLayers[selectedDistrict]) {
+    heatmapInstance.fitBounds(districtLayers[selectedDistrict].getBounds(), { padding: [20, 20] });
+  }
 }
 
 /* ════════════════════════════════════════════════════════
@@ -1122,7 +1146,10 @@ function updateInsightCharts() {
     options: {
       responsive: true, maintainAspectRatio: false,
       onClick: (evt, elements) => {
-        if (elements.length > 0) selectDistrict(dlabels[elements[0].index], fStats);
+        if (elements.length > 0) {
+          const d = dlabels[elements[0].index];
+          if (d === selectedDistrict) { clearDistrict(); } else { selectDistrict(d, fStats); }
+        }
       },
       onHover: (evt, elements) => {
         const d = elements.length > 0 ? dlabels[elements[0].index] : null;
