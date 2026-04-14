@@ -711,7 +711,13 @@ function initInsightMap() {
 function initHeatmap() {
   heatmapInstance = L.map('insight-heatmap', { zoomControl: true, attributionControl: false })
     .setView([60.20, 24.96], 12);
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 18 })
+  // OSM standard tiles: parks shown in green, water in blue
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19,
+    attribution: '© OpenStreetMap contributors',
+  }).addTo(heatmapInstance);
+  L.control.attribution({ position: 'bottomright', prefix: false })
+    .addAttribution('© <a href="https://openstreetmap.org/copyright">OpenStreetMap</a>')
     .addTo(heatmapInstance);
   updateHeatmap();
 }
@@ -724,12 +730,14 @@ function updateHeatmap() {
     return [lat, lon];
   });
   if (heatmapLayer) heatmapInstance.removeLayer(heatmapLayer);
+  // Purple→magenta→orange→red gradient contrasts clearly with
+  // OSM's green parks and blue water
   heatmapLayer = L.heatLayer(pts, {
-    radius: 18,
-    blur: 20,
+    radius: 20,
+    blur: 22,
     maxZoom: 17,
-    max: 1.0,
-    gradient: { 0.2: '#0ea5e9', 0.45: '#22c55e', 0.65: '#eab308', 0.85: '#f97316', 1.0: '#ef4444' },
+    minOpacity: 0.04,
+    gradient: { 0.25: '#7c3aed', 0.5: '#db2777', 0.72: '#f97316', 1.0: '#dc2626' },
   }).addTo(heatmapInstance);
 }
 
