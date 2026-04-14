@@ -694,6 +694,45 @@ Chart.defaults.font  = { family: '-apple-system, BlinkMacSystemFont,"Segoe UI",R
 
 function destroyChart(ref) { if (ref) { try { ref.destroy(); } catch(e){} } }
 
+/* ── Two-tailed p-value for Pearson r (t-distribution) ── */
+function _logGamma(z) {
+  const c = [76.18009172947146,-86.50532032941677,24.01409824083091,
+             -1.231739572450155,0.1208650973866179e-2,-0.5395239384953e-5];
+  let x=z, y=z, tmp=x+5.5; tmp-=(x+0.5)*Math.log(tmp);
+  let ser=1.000000000190015;
+  for(let j=0;j<6;j++) ser+=c[j]/(++y);
+  return -tmp+Math.log(2.5066282746310005*ser/x);
+}
+function _betacf(a,b,x) {
+  const MAXIT=100,EPS=3e-7,FPMIN=1e-30;
+  const qab=a+b,qap=a+1,qam=a-1;
+  let c=1,d=1-qab*x/qap; if(Math.abs(d)<FPMIN)d=FPMIN; d=1/d; let h=d;
+  for(let m=1;m<=MAXIT;m++){
+    const m2=2*m;
+    let aa=m*(b-m)*x/((qam+m2)*(a+m2));
+    d=1+aa*d; if(Math.abs(d)<FPMIN)d=FPMIN;
+    c=1+aa/c; if(Math.abs(c)<FPMIN)c=FPMIN; d=1/d; h*=d*c;
+    aa=-(a+m)*(qab+m)*x/((a+m2)*(qap+m2));
+    d=1+aa*d; if(Math.abs(d)<FPMIN)d=FPMIN;
+    c=1+aa/c; if(Math.abs(c)<FPMIN)c=FPMIN; d=1/d;
+    const del=d*c; h*=del; if(Math.abs(del-1)<EPS)break;
+  }
+  return h;
+}
+function _betai(a,b,x) {
+  if(x<=0)return 0; if(x>=1)return 1;
+  const lbeta=_logGamma(a)+_logGamma(b)-_logGamma(a+b);
+  const front=Math.exp(Math.log(x)*a+Math.log(1-x)*b-lbeta)/a;
+  return front*_betacf(a,b,x);
+}
+function _tPValue(t,df) { return Math.min(1,_betai(df/2,0.5,df/(df+t*t))); }
+function _fmtP(p) {
+  if(p<0.001) return 'p < 0.001';
+  if(p<0.01)  return 'p < 0.01';
+  if(p<0.05)  return 'p < 0.05';
+  return 'p = '+(p<0.1?p.toFixed(3):p.toFixed(2));
+}
+
 function regression(pts, xKey, yKey) {
   if (pts.length < 3) return null;
   const n = pts.length;
@@ -709,7 +748,9 @@ function regression(pts, xKey, yKey) {
   const dy  = Math.sqrt(pts.reduce((a,d)=>a+(d[yKey]-my)**2,0));
   const r   = (dx&&dy) ? num/(dx*dy) : 0;
   const xMin = Math.min(...pts.map(d=>d[xKey])), xMax = Math.max(...pts.map(d=>d[xKey]));
-  return { m, b, r: r.toFixed(2), xMin, xMax };
+  const t   = Math.abs(r) * Math.sqrt(n-2) / Math.sqrt(Math.max(1-r*r, 1e-10));
+  const p   = _tPValue(t, n-2);
+  return { m, b, r: r.toFixed(2), p: _fmtP(p), xMin, xMax };
 }
 
 /* ════════════════════════════════════════════════════════
@@ -830,7 +871,7 @@ function rebuildScatter(canvasId, stats, xKey, yKey, xLabel, yLabel) {
     backgroundColor: '#3b82f680', pointRadius: 6, pointHoverRadius: 8,
   }];
   if (reg) datasets.push({
-    type: 'line', label: `r = ${reg.r}`,
+    type: 'line', label: `r = ${reg.r},  ${reg.p}`,
     data: [{ x: reg.xMin, y: reg.xMin*reg.m+reg.b }, { x: reg.xMax, y: reg.xMax*reg.m+reg.b }],
     borderColor: '#f97316', borderWidth: 1.5, borderDash: [4,3],
     pointRadius: 0, fill: false,
@@ -874,7 +915,7 @@ function rebuildScatter(canvasId, stats, xKey, yKey, xLabel, yLabel) {
    Data loading
 ════════════════════════════════════════════════════════ */
 Promise.all([
-  fetch('helsinki_benches_deduped_en.json?v=3').then(r=>r.json()),
+  fetch('helsinki_benches_deduped_en.json?v=4').then(r=>r.json()),
   fetch('district_stats.json?v=2').then(r=>r.json()).catch(()=>[]),
   fetch('district_boundaries.json?v=2').then(r=>r.json()).catch(()=>null),
 ])
