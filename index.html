@@ -273,11 +273,11 @@
       <label class="filter-label">Bench Model (YLRE data)</label>
       <div class="model-note">Multi-select. When active, benches without model data are hidden.</div>
       <div class="model-pills" id="model-pills">
-        <button class="model-pill" data-group="wood_steel" onclick="toggleModelGroup(this)">Wood &amp; steel<span class="badge" id="badge-mg-wood_steel" style="margin-left:4px;">–</span></button>
-        <button class="model-pill" data-group="steel"      onclick="toggleModelGroup(this)">Steel frame<span class="badge" id="badge-mg-steel" style="margin-left:4px;">–</span></button>
-        <button class="model-pill" data-group="forest"     onclick="toggleModelGroup(this)">Forest / natural<span class="badge" id="badge-mg-forest" style="margin-left:4px;">–</span></button>
-        <button class="model-pill" data-group="stone"      onclick="toggleModelGroup(this)">Stone &amp; slab<span class="badge" id="badge-mg-stone" style="margin-left:4px;">–</span></button>
-        <button class="model-pill" data-group="brand"      onclick="toggleModelGroup(this)">Named brands<span class="badge" id="badge-mg-brand" style="margin-left:4px;">–</span></button>
+        <button class="model-pill" data-group="general" onclick="toggleModelGroup(this)">General<span class="badge" id="badge-mg-general" style="margin-left:4px;">–</span></button>
+        <button class="model-pill" data-group="metal"   onclick="toggleModelGroup(this)">Metal<span class="badge" id="badge-mg-metal" style="margin-left:4px;">–</span></button>
+        <button class="model-pill" data-group="stone"   onclick="toggleModelGroup(this)">Stone &amp; slab<span class="badge" id="badge-mg-stone" style="margin-left:4px;">–</span></button>
+        <button class="model-pill" data-group="organic" onclick="toggleModelGroup(this)">Organic &amp; Traditional<span class="badge" id="badge-mg-organic" style="margin-left:4px;">–</span></button>
+        <button class="model-pill" data-group="brand"   onclick="toggleModelGroup(this)">Named brands<span class="badge" id="badge-mg-brand" style="margin-left:4px;">–</span></button>
       </div>
       <label class="filter-label">Backrest (OSM data)</label>
       <select id="filter-backrest" onchange="applyMapFilters()">
@@ -343,11 +343,11 @@
       <div class="fbar-group" id="insight-model-group">
         <span class="fbar-label">Model</span>
         <span style="font-size:10px;color:#94a3b8;">multi-select</span>
-        <button class="fbar-btn" data-imodel="wood_steel" onclick="toggleInsightModel(this)">Wood &amp; steel</button>
-        <button class="fbar-btn" data-imodel="steel"      onclick="toggleInsightModel(this)">Steel frame</button>
-        <button class="fbar-btn" data-imodel="forest"     onclick="toggleInsightModel(this)">Forest / natural</button>
-        <button class="fbar-btn" data-imodel="stone"      onclick="toggleInsightModel(this)">Stone &amp; slab</button>
-        <button class="fbar-btn" data-imodel="brand"      onclick="toggleInsightModel(this)">Named brands</button>
+        <button class="fbar-btn" data-imodel="general" onclick="toggleInsightModel(this)">General</button>
+        <button class="fbar-btn" data-imodel="metal"   onclick="toggleInsightModel(this)">Metal</button>
+        <button class="fbar-btn" data-imodel="stone"   onclick="toggleInsightModel(this)">Stone &amp; slab</button>
+        <button class="fbar-btn" data-imodel="organic" onclick="toggleInsightModel(this)">Organic &amp; Traditional</button>
+        <button class="fbar-btn" data-imodel="brand"   onclick="toggleInsightModel(this)">Named brands</button>
       </div>
     </div>
   </div>
@@ -440,11 +440,11 @@
       <strong>Waterfront</strong> — Within 200 m of the Baltic Sea coastline (OSM coastline data).<br><br>
       <h3>Bench Model Groups</h3>
       Derived from the <code>ylre_material</code> field in YLRE data. Only city-registered benches carry model information; OSM-only benches and records with blank or unrecognised values are excluded when any model group filter is active.<br><br>
-      <strong>Wood &amp; steel</strong> — HKI-D3 (basic bench), D8 (birch-leg bench), D12 (general bench, wooden seat &amp; steel frame), D13 (general chair, wooden seat &amp; steel frame).<br>
-      <strong>Steel frame</strong> — HKI-D1 (steel-leg bench, incl. removable variant), D10 (general bench, steel), D11 (general chair, steel).<br>
-      <strong>Forest / natural</strong> — HKI-D5 (forest bench), D6 (Kaivopuisto wooden bench), D7 (Esplanade Park bench), and records labelled "Forest bench".<br>
-      <strong>Stone &amp; slab</strong> — HKI-D2 (bench with stone base), D16 (concrete seating base), HKI/HKR slab benches (large &amp; small), and tree-surround benches.<br>
-      <strong>Named brands</strong> — Commercially identified models: Benkert, Victor Stanley, Sineu Grafin (Siege Solo / Banquette City), Monena Wave, Lehtovuori Lahti.
+      <strong>General</strong> — Helsinki's most widespread public bench type combining a wooden seat with a durable steel or stainless-steel frame. Models: HKI-D1 (steel-leg street bench), D3 (standard accessible bench), D4 (single chair), D12 (general bench, wooden seat &amp; steel frame), D13 (general chair, wooden seat &amp; steel frame). Materials: dense pine or oak seat; hot-dip galvanised and powder-coated steel frame.<br><br>
+      <strong>Metal</strong> — All-steel benches prioritising durability and low maintenance, typically placed at transit stops and squares. Models: HKI-D9 (backrest-free steel bench), D10 (general bench, steel), D11 (general chair, steel).<br><br>
+      <strong>Stone &amp; slab</strong> — Heavy, permanent installations using natural stone or concrete as the structural base. Models: HKI-D2 (bench with granite/natural-stone base), D16 (concrete seating base). Also includes HKI/HKR large and small slab benches and tree-surround benches.<br><br>
+      <strong>Organic &amp; Traditional Wood</strong> — Design-forward models intended for historic landscapes or natural settings. Models: HKI-D5 (simple forest bench), D6 (Kaivopuisto wooden bench), D7 (Esplanade Park bench, cast-iron legs), D8 (birch-pattern-leg bench), D14 (historic area prefab bench). Materials: cast iron (<em>valurauta</em>) and substantial timber with decorative finishing.<br><br>
+      <strong>Named brands</strong> — Off-the-shelf street furniture procured from external manufacturers rather than city-designed. Includes: Benkert, Victor Stanley, Sineu Graff (Siege Solo / Banquette City), Monena Wave, Lehtovuori Lahti, and products from partners such as Extery and Metalco. Typically introduced in new development areas or commercial projects.
     </div>
     <div>
       <h3>Methodology</h3>
@@ -593,11 +593,16 @@ function getBenchType(p) { return p.bench_type||p.ylre_bench_type||null; }
 function getBackrest(p)  { return p.backrest||p.osm_backrest||null; }
 
 const MODEL_GROUP_RULES = [
-  ['wood_steel', m => /d3,|d8,|d12,|d13,|birch-leg|wooden seat/.test(m)],
-  ['steel',      m => /d1,|d10,|d11,|steel-leg/.test(m)],
-  ['forest',     m => /d5,|d6,|d7,|forest bench|forest/.test(m)],
-  ['stone',      m => /d2,|d16,|slab|stone base|tree-surround|concrete/.test(m)],
-  ['brand',      m => /benkert|victor stanley|sineu|monena|lehtovuori/.test(m)],
+  // 1. General — wood + metal: standard accessible benches with wooden seat & steel frame
+  ['general', m => /d3,|d4,|d12,|d13,|d1,|steel-leg|wooden seat/.test(m)],
+  // 2. Metal — all-steel benches and backrest-free steel models
+  ['metal',   m => /d10,|d11,|d9,/.test(m)],
+  // 3. Stone & Slab — granite/stone base, concrete slab, tree-surround
+  ['stone',   m => /d2,|d16,|slab|stone base|tree-surround|concrete/.test(m)],
+  // 4. Organic & Traditional Wood — park-specific, historic, forest and birch-leg models
+  ['organic', m => /d5,|d6,|d7,|d8,|d14,|birch-leg|forest bench|kaivopuisto|esplanade/.test(m)],
+  // 5. Named Brands — commercially procured street furniture
+  ['brand',   m => /benkert|victor stanley|sineu|monena|extery|metalco|lehtovuori/.test(m)],
 ];
 function getModelGroup(p) {
   const m = (p.ylre_material || '').toLowerCase();
@@ -1115,7 +1120,7 @@ Promise.all([
   /* ── Map tab setup ──────────────────────────────────── */
   let nCity=0, nComm=0, nNature=0, nWF=0;
   const districts = new Set();
-  const modelGroupCounts = { wood_steel:0, steel:0, forest:0, stone:0, brand:0 };
+  const modelGroupCounts = { general:0, metal:0, stone:0, organic:0, brand:0 };
 
   for (const f of benchFeatures) {
     const p = f.properties;
