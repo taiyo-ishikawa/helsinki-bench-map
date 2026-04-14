@@ -1207,7 +1207,7 @@ function rebuildScatter(canvasId, stats, xKey, yKey, xLabel, yLabel) {
    Data loading
 ════════════════════════════════════════════════════════ */
 Promise.all([
-  fetch('helsinki_benches_deduped_en.json?v=5').then(r=>r.json()),
+  fetch('helsinki_benches_deduped_en.json?v=6').then(r=>r.json()),
   fetch('district_stats.json?v=3').then(r=>r.json()).catch(()=>[]),
   fetch('district_boundaries.json?v=2').then(r=>r.json()).catch(()=>null),
 ])

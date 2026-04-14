@@ -5,10 +5,12 @@ classify_sidewalks.py
 Adds is_sidewalk=True/False to every bench in helsinki_benches_deduped_en.json.
 
 Classification logic:
-  - YLRE street benches (Helsinki_YLRE_street): always is_sidewalk=True
   - YLRE park benches  (Helsinki_YLRE_park):   always is_sidewalk=False
-  - OSM-only benches: check proximity (≤ BUFFER_M metres) to OSM footway/path/pedestrian.
-    Falls back to heuristic (!is_nature) if Overpass is unavailable.
+  - YLRE street benches (Helsinki_YLRE_street) + OSM-only benches:
+      check proximity (≤ BUFFER_M metres) to OSM footway/path/pedestrian.
+      Falls back to heuristic for OSM-only (!is_nature) if Overpass is unavailable.
+      Note: Katuosat includes plazas/squares that are not sidewalks, so proximity
+      check is applied rather than blanket True.
 
 Requirements: requests, shapely, pyproj
 """
@@ -91,32 +93,31 @@ def main():
         p    = feat["properties"]
         src  = p.get("source", "")
         ysrc = p.get("ylre_source", "")
-        if src == "Helsinki_YLRE_street" or ysrc == "Helsinki_YLRE_street":
-            ylre_street.append(feat)
-        elif src == "Helsinki_YLRE_park" or ysrc == "Helsinki_YLRE_park":
+        if src == "Helsinki_YLRE_park" or ysrc == "Helsinki_YLRE_park":
             ylre_park.append(feat)
+        elif src == "Helsinki_YLRE_street" or ysrc == "Helsinki_YLRE_street":
+            ylre_street.append(feat)
         else:
             osm_only.append(feat)
 
     print(f"  Street (YLRE): {len(ylre_street)}  Park (YLRE): {len(ylre_park)}  OSM-only: {len(osm_only)}")
 
-    # YLRE benches — classified by source directly
-    for feat in ylre_street:
-        feat["properties"]["is_sidewalk"] = True
+    # YLRE park benches — always False (greenspace, not sidewalk)
     for feat in ylre_park:
         feat["properties"]["is_sidewalk"] = False
 
-    # OSM-only benches — try Overpass, else fall back to heuristic
-    if osm_only:
-        print("\nFetching OSM footway data for OSM-only benches …")
+    # YLRE street + OSM-only benches — proximity check via Overpass
+    to_classify = ylre_street + osm_only
+    if to_classify:
+        print(f"\nFetching OSM footway data for {len(to_classify)} benches (YLRE street + OSM-only) …")
         ways = fetch_footways()
 
         if ways:
             print("Building spatial index …")
             buffers, tree = build_strtree(ways)
-            print(f"Classifying {len(osm_only)} OSM benches against footway buffer …")
+            print(f"Classifying {len(to_classify)} benches against footway buffer …")
             n_sw = 0
-            for i, feat in enumerate(osm_only):
+            for i, feat in enumerate(to_classify):
                 lon, lat = feat["geometry"]["coordinates"]
                 x, y = _to_metric.transform(lon, lat)
                 pt   = Point(x, y)
@@ -126,18 +127,21 @@ def main():
                 if is_sw:
                     n_sw += 1
                 if (i + 1) % 500 == 0:
-                    print(f"  … {i+1}/{len(osm_only)}", flush=True)
-            print(f"  OSM sidewalk: {n_sw}/{len(osm_only)}")
+                    print(f"  … {i+1}/{len(to_classify)}", flush=True)
+            print(f"  Sidewalk: {n_sw}/{len(to_classify)}")
         else:
-            print("  Overpass unavailable → using heuristic: !is_nature & !is_waterfront")
+            print("  Overpass unavailable → YLRE street: True, OSM-only: heuristic (!is_nature & !is_waterfront)")
             n_sw = 0
+            for feat in ylre_street:
+                feat["properties"]["is_sidewalk"] = True
+                n_sw += 1
             for feat in osm_only:
                 p = feat["properties"]
                 is_sw = not p.get("is_nature", False) and not p.get("is_waterfront", False)
                 feat["properties"]["is_sidewalk"] = is_sw
                 if is_sw:
                     n_sw += 1
-            print(f"  OSM sidewalk (heuristic): {n_sw}/{len(osm_only)}")
+            print(f"  Sidewalk (fallback): {n_sw}/{len(to_classify)}")
 
     # Summary
     total_sw = sum(1 for f in features if f["properties"].get("is_sidewalk"))
