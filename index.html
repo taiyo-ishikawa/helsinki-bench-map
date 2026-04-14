@@ -389,7 +389,7 @@
     <div class="insight-header">Helsinki Bench Insights</div>
     <div class="insight-sub">District-level spatial analysis · Data: April 2026 · Population &amp; income: Statistics Finland Paavo 2023</div>
 
-    <!-- Row 1: Density ranking + heatmap -->
+    <!-- Row 1: Density ranking + District map -->
     <div class="chart-row row-2-3">
       <div class="chart-card" id="density-card">
         <div class="chart-header">
@@ -404,15 +404,6 @@
         </div>
         <div id="density-wrap"><canvas id="chart-density"></canvas></div>
       </div>
-      <div class="chart-card" style="display:flex;flex-direction:column;">
-        <div class="chart-title">Bench Density Heatmap</div>
-        <div class="chart-desc">Spatial distribution of filtered benches. Click a bar to zoom to a district. Click again to reset.</div>
-        <div id="insight-heatmap" style="flex:1;min-height:300px;"></div>
-      </div>
-    </div>
-
-    <!-- Row 2: District map + info card -->
-    <div class="chart-row row-2-3">
       <div class="chart-card">
         <div class="chart-title">District Map</div>
         <div class="chart-desc">Click a district outline to see details.</div>
@@ -430,6 +421,15 @@
             <div class="di-item"><div class="di-val" id="di-youth">–</div><div class="di-lab">Aged 0–17 (%)</div></div>
           </div>
         </div>
+      </div>
+    </div>
+
+    <!-- Row 2: Heatmap (full width, below density + district map) -->
+    <div class="chart-row">
+      <div class="chart-card" style="flex:1;">
+        <div class="chart-title">Bench Density Heatmap</div>
+        <div class="chart-desc">Spatial distribution of filtered benches. Click a bar or district to zoom in. Click again to reset.</div>
+        <div id="insight-heatmap"></div>
       </div>
     </div>
 
