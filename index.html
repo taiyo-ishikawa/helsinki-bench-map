@@ -282,6 +282,12 @@
       <div class="panel-title">Filters</div>
       <label class="filter-label">District (Kaupunginosa)</label>
       <select id="filter-district" onchange="applyMapFilters()"><option value="">All districts</option></select>
+      <label class="filter-label">Location character</label>
+      <div class="checkbox-group">
+        <label class="checkbox-row"><input type="checkbox" id="filter-nature"      onchange="applyMapFilters()"> 🌿 Nature / Park <span class="badge" id="badge-nature">–</span></label>
+        <label class="checkbox-row"><input type="checkbox" id="filter-waterfront"  onchange="applyMapFilters()"> 🌊 Waterfront    <span class="badge" id="badge-waterfront">–</span></label>
+        <label class="checkbox-row"><input type="checkbox" id="filter-sidewalk"    onchange="applyMapFilters()"> 🚶 Sidewalk      <span class="badge" id="badge-sidewalk">–</span></label>
+      </div>
       <label class="filter-label">Bench Type</label>
       <select id="filter-type" onchange="applyMapFilters()">
         <option value="">All types</option>
@@ -305,12 +311,6 @@
         <option value="yes">With backrest</option>
         <option value="no">Without backrest</option>
       </select>
-      <label class="filter-label">Location character</label>
-      <div class="checkbox-group">
-        <label class="checkbox-row"><input type="checkbox" id="filter-nature"      onchange="applyMapFilters()"> 🌿 Nature / Park <span class="badge" id="badge-nature">–</span></label>
-        <label class="checkbox-row"><input type="checkbox" id="filter-waterfront"  onchange="applyMapFilters()"> 🌊 Waterfront    <span class="badge" id="badge-waterfront">–</span></label>
-        <label class="checkbox-row"><input type="checkbox" id="filter-sidewalk"    onchange="applyMapFilters()"> 🚶 Sidewalk      <span class="badge" id="badge-sidewalk">–</span></label>
-      </div>
       <button class="btn-reset" onclick="resetMapFilters()">Reset all filters</button>
     </div>
     <div class="panel">
