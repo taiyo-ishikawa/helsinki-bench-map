@@ -138,6 +138,10 @@
     .mode-btn { padding: 3px 10px; font-size: 11px; font-weight: 600; cursor: pointer; background: #f8fafc; color: #64748b; border: none; transition: background .12s; }
     .mode-btn.active { background: #0d3b66; color: #fff; }
 
+    /* Density chart card — flex so canvas fills card when district panel appears */
+    #density-card { display: flex; flex-direction: column; }
+    #density-wrap { flex: 1; min-height: 300px; position: relative; }
+
     /* Mini map */
     #insight-map { width: 100%; height: 300px; border-radius: 6px; background: #e2e8f0; }
 
@@ -340,10 +344,10 @@
       <div class="fbar-divider"></div>
       <div class="fbar-group">
         <span class="fbar-label">Location</span>
-        <button class="fbar-btn active"       data-loc="all"        onclick="setInsightFilter('location','all',this)">All</button>
-        <button class="fbar-btn active-nature" data-loc="nature"    onclick="setInsightFilter('location','nature',this)" style="background:#f0fdf4;border-color:#86efac;color:#15803d;">🌿 Nature</button>
-        <button class="fbar-btn active-water"  data-loc="waterfront" onclick="setInsightFilter('location','waterfront',this)" style="background:#f0f9ff;border-color:#7dd3fc;color:#0369a1;">🌊 Waterfront</button>
-        <button class="fbar-btn"              data-loc="sidewalk"   onclick="setInsightFilter('location','sidewalk',this)"   style="background:#f9fafb;border-color:#d1d5db;color:#6b7280;">🚶 Sidewalk</button>
+        <span style="font-size:10px;color:#94a3b8;">multi-select</span>
+        <button class="fbar-btn" data-loc="nature"     onclick="toggleInsightLocation(this)" style="background:#f0fdf4;border-color:#86efac;color:#15803d;">🌿 Nature</button>
+        <button class="fbar-btn" data-loc="waterfront" onclick="toggleInsightLocation(this)" style="background:#f0f9ff;border-color:#7dd3fc;color:#0369a1;">🌊 Waterfront</button>
+        <button class="fbar-btn" data-loc="sidewalk"   onclick="toggleInsightLocation(this)" style="background:#f9fafb;border-color:#d1d5db;color:#6b7280;">🚶 Sidewalk</button>
       </div>
       <div id="insight-filter-count" style="margin-left:auto;font-size:11px;color:#64748b;white-space:nowrap;">
         <strong id="ifc-count">–</strong> benches · <strong id="ifc-districts">–</strong> districts
@@ -380,7 +384,7 @@
 
     <!-- Row 1: Density ranking + mini map -->
     <div class="chart-row row-2-3">
-      <div class="chart-card">
+      <div class="chart-card" id="density-card">
         <div class="chart-header">
           <div>
             <div class="chart-title">Bench Density by District (benches / km²)</div>
@@ -391,7 +395,7 @@
             <button class="mode-btn"        id="btn-bottom" onclick="setDensityMode('bottom')">▼ Bottom 30</button>
           </div>
         </div>
-        <div style="position:relative;height:320px"><canvas id="chart-density"></canvas></div>
+        <div id="density-wrap"><canvas id="chart-density"></canvas></div>
       </div>
       <div class="chart-card">
         <div class="chart-title">District Map</div>
@@ -427,16 +431,7 @@
       </div>
     </div>
 
-    <!-- Row 3: Heatmap -->
-    <div class="chart-row">
-      <div class="chart-card" style="flex:1;">
-        <div class="chart-title">Bench Density Heatmap</div>
-        <div class="chart-desc">Spatial distribution of filtered benches. Zoom and pan freely.</div>
-        <div id="insight-heatmap"></div>
-      </div>
-    </div>
-
-    <!-- Row 4: Age demographic scatter plots -->
+    <!-- Row 3: Age demographic scatter plots -->
     <div class="chart-row row-1-1">
       <div class="chart-card">
         <div class="chart-title">% Elderly (65+) vs. Bench Density</div>
@@ -447,6 +442,15 @@
         <div class="chart-title">% Youth (0–17) vs. Bench Density</div>
         <div class="chart-desc">Relationship between share of children / teens and bench provision.</div>
         <div style="position:relative;height:270px"><canvas id="chart-scatter-youth"></canvas></div>
+      </div>
+    </div>
+
+    <!-- Row 4: Heatmap (full width, bottom) -->
+    <div class="chart-row">
+      <div class="chart-card" style="flex:1;">
+        <div class="chart-title">Bench Density Heatmap</div>
+        <div class="chart-desc">Spatial distribution of filtered benches. Zoom and pan freely.</div>
+        <div id="insight-heatmap"></div>
       </div>
     </div>
 
@@ -511,7 +515,8 @@ let benchFeatures = [], districtStats = [], districtBoundaries = null;
 let selectedModelGroups = new Set();
 
 // Insight state
-let insightFilters = { source: 'all', location: 'all', type: 'all' };
+let insightFilters = { source: 'all', type: 'all' };
+let insightLocations  = new Set(); // multi-select: empty = all locations
 let insightModelGroups = new Set(); // multi-select model groups for Insight
 let densityMode    = 'top';   // 'top' | 'bottom'
 let selectedDistrict = null;
@@ -717,15 +722,12 @@ function setInsightFilter(type, value, btn) {
   // Deactivate all buttons in the same group, restore custom non-active styles
   btn.parentElement.querySelectorAll('.fbar-btn').forEach(b => {
     b.classList.remove('active');
-    if (b.dataset.loc === 'nature')     { b.style.background='#f0fdf4'; b.style.borderColor='#86efac'; b.style.color='#15803d'; }
-    if (b.dataset.loc === 'waterfront') { b.style.background='#f0f9ff'; b.style.borderColor='#7dd3fc'; b.style.color='#0369a1'; }
-    if (b.dataset.loc === 'sidewalk')   { b.style.background='#f9fafb'; b.style.borderColor='#d1d5db'; b.style.color='#6b7280'; }
     if (b.dataset.src === 'city' || b.dataset.src === 'comm') { b.style.cssText=''; }
     if (b.dataset.itype) { b.style.cssText=''; }
   });
   btn.classList.add('active');
   // Active accent colors
-  const ACCENT = { city:'#1d4ed8', comm:'#ea580c', nature:'#16a34a', waterfront:'#0284c7', sidewalk:'#78716c' };
+  const ACCENT = { city:'#1d4ed8', comm:'#ea580c' };
   const col = ACCENT[value] || '#1d4ed8';
   btn.style.cssText = `background:${col};color:#fff;border-color:${col};`;
 
@@ -742,6 +744,31 @@ function toggleInsightModel(btn) {
     insightModelGroups.add(g);
     btn.classList.add('active');
     btn.style.cssText = 'background:#1d4ed8;color:#fff;border-color:#1d4ed8;';
+  }
+  updateInsightCharts();
+}
+
+const LOC_INACTIVE = {
+  nature:     'background:#f0fdf4;border-color:#86efac;color:#15803d;',
+  waterfront: 'background:#f0f9ff;border-color:#7dd3fc;color:#0369a1;',
+  sidewalk:   'background:#f9fafb;border-color:#d1d5db;color:#6b7280;',
+};
+const LOC_ACTIVE = {
+  nature:     'background:#16a34a;color:#fff;border-color:#16a34a;',
+  waterfront: 'background:#0284c7;color:#fff;border-color:#0284c7;',
+  sidewalk:   'background:#78716c;color:#fff;border-color:#78716c;',
+};
+
+function toggleInsightLocation(btn) {
+  const loc = btn.dataset.loc;
+  if (insightLocations.has(loc)) {
+    insightLocations.delete(loc);
+    btn.classList.remove('active');
+    btn.style.cssText = LOC_INACTIVE[loc] || '';
+  } else {
+    insightLocations.add(loc);
+    btn.classList.add('active');
+    btn.style.cssText = LOC_ACTIVE[loc] || '';
   }
   updateInsightCharts();
 }
@@ -764,9 +791,12 @@ function getFilteredBenches() {
     const cat = sourceCategory(p.source);
     if (insightFilters.source === 'city' && cat !== 'city') return false;
     if (insightFilters.source === 'comm' && cat !== 'comm') return false;
-    if (insightFilters.location === 'nature'     && !p.is_nature)     return false;
-    if (insightFilters.location === 'waterfront' && !p.is_waterfront) return false;
-    if (insightFilters.location === 'sidewalk'   && !p.is_sidewalk)   return false;
+    if (insightLocations.size > 0) {
+      const ok = (insightLocations.has('nature')     && p.is_nature)     ||
+                 (insightLocations.has('waterfront') && p.is_waterfront) ||
+                 (insightLocations.has('sidewalk')   && p.is_sidewalk);
+      if (!ok) return false;
+    }
     if (insightFilters.type !== 'all') {
       const t = getBenchType(p);
       if (t !== ITYPE_MAP[insightFilters.type]) return false;
