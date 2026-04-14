@@ -389,7 +389,7 @@
     <div class="insight-header">Helsinki Bench Insights</div>
     <div class="insight-sub">District-level spatial analysis · Data: April 2026 · Population &amp; income: Statistics Finland Paavo 2023</div>
 
-    <!-- Row 1: Density ranking + mini map -->
+    <!-- Row 1: Density ranking + heatmap -->
     <div class="chart-row row-2-3">
       <div class="chart-card" id="density-card">
         <div class="chart-header">
@@ -404,6 +404,15 @@
         </div>
         <div id="density-wrap"><canvas id="chart-density"></canvas></div>
       </div>
+      <div class="chart-card" style="display:flex;flex-direction:column;">
+        <div class="chart-title">Bench Density Heatmap</div>
+        <div class="chart-desc">Spatial distribution of filtered benches. Click a bar to zoom to a district. Click again to reset.</div>
+        <div id="insight-heatmap" style="flex:1;min-height:300px;"></div>
+      </div>
+    </div>
+
+    <!-- Row 2: District map + info card -->
+    <div class="chart-row row-2-3">
       <div class="chart-card">
         <div class="chart-title">District Map</div>
         <div class="chart-desc">Click a district outline to see details.</div>
@@ -424,7 +433,7 @@
       </div>
     </div>
 
-    <!-- Row 2: Scatter plots -->
+    <!-- Row 3: Scatter plots -->
     <div class="chart-row row-1-1">
       <div class="chart-card">
         <div class="chart-title">Population Density vs. Bench Density</div>
@@ -438,7 +447,7 @@
       </div>
     </div>
 
-    <!-- Row 3: Age demographic scatter plots -->
+    <!-- Row 4: Age demographic scatter plots -->
     <div class="chart-row row-1-1">
       <div class="chart-card">
         <div class="chart-title">% Elderly (65+) vs. Bench Density</div>
@@ -449,15 +458,6 @@
         <div class="chart-title">% Youth (0–17) vs. Bench Density</div>
         <div class="chart-desc">Relationship between share of children / teens and bench provision.</div>
         <div style="position:relative;height:270px"><canvas id="chart-scatter-youth"></canvas></div>
-      </div>
-    </div>
-
-    <!-- Row 4: Heatmap (full width, bottom) -->
-    <div class="chart-row">
-      <div class="chart-card" style="flex:1;">
-        <div class="chart-title">Bench Density Heatmap</div>
-        <div class="chart-desc">Spatial distribution of filtered benches. Zoom and pan freely.</div>
-        <div id="insight-heatmap"></div>
       </div>
     </div>
 
