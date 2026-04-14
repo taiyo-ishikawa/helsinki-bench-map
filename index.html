@@ -777,16 +777,17 @@ function initInsightMap() {
    Heatmap (Insight)
 ════════════════════════════════════════════════════════ */
 function initHeatmap() {
+  // attributionControl: false → we place attribution manually to control position
   heatmapInstance = L.map('insight-heatmap', { zoomControl: false, attributionControl: false })
     .setView([60.20, 24.96], 12);
+  // Zoom added first → sits ABOVE attribution in the bottom-right stack
   L.control.zoom({ position: 'bottomright' }).addTo(heatmapInstance);
-  // OSM standard tiles: parks shown in green, water in blue
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    maxZoom: 19,
-    attribution: '© OpenStreetMap contributors',
-  }).addTo(heatmapInstance);
+  // OSM standard tiles — no attribution option so it doesn't auto-inject
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 })
+    .addTo(heatmapInstance);
+  // Attribution added last → rendered at the very bottom of the corner, below ±
   L.control.attribution({ position: 'bottomright', prefix: false })
-    .addAttribution('© <a href="https://openstreetmap.org/copyright">OpenStreetMap</a>')
+    .addAttribution('© <a href="https://openstreetmap.org/copyright" target="_blank">OpenStreetMap</a> contributors')
     .addTo(heatmapInstance);
   updateHeatmap();
 }
