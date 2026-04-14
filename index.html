@@ -85,15 +85,15 @@
     #insight-filter-bar {
       background: #fff;
       border-bottom: 1px solid #e2e8f0;
-      padding: 10px 20px;
+      padding: 8px 20px;
       display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      gap: 16px;
+      flex-direction: column;
+      gap: 6px;
       flex-shrink: 0;
       z-index: 10;
     }
-    .fbar-group { display: flex; align-items: center; gap: 6px; }
+    .fbar-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+    .fbar-group { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
     .fbar-label { font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: .5px; white-space: nowrap; }
     .fbar-btn {
       padding: 4px 12px;
@@ -197,19 +197,18 @@
       .kpi-grid { grid-template-columns: repeat(3, 1fr); }
       .row-1-1 { grid-template-columns: 1fr; }
       #insight-inner { padding: 12px 10px 32px; }
-      #insight-filter-bar {
-        padding: 8px 10px;
-        gap: 0;
+      #insight-filter-bar { padding: 6px 10px; gap: 4px; }
+      .fbar-row {
+        gap: 6px;
         flex-wrap: nowrap;
         overflow-x: auto;
         -webkit-overflow-scrolling: touch;
         scrollbar-width: none;
       }
-      #insight-filter-bar::-webkit-scrollbar { display: none; }
-      .fbar-group { flex-shrink: 0; gap: 4px; }
-      .fbar-group + .fbar-group { margin-left: 10px; }
+      .fbar-row::-webkit-scrollbar { display: none; }
+      .fbar-group { flex-shrink: 0; gap: 4px; flex-wrap: nowrap; }
       .fbar-divider { flex-shrink: 0; }
-      .fbar-btn { padding: 5px 10px; font-size: 11px; }
+      .fbar-btn { padding: 4px 9px; font-size: 11px; }
       #insight-filter-count { display: none; }
       #insight-map { height: 260px; }
       #insight-heatmap { height: 340px; }
@@ -311,21 +310,45 @@
 
   <!-- Filter bar -->
   <div id="insight-filter-bar">
-    <div class="fbar-group">
-      <span class="fbar-label">Source</span>
-      <button class="fbar-btn active" data-src="all"  onclick="setInsightFilter('source','all',this)">All</button>
-      <button class="fbar-btn"        data-src="city" onclick="setInsightFilter('source','city',this)">🔵 City-registered</button>
-      <button class="fbar-btn"        data-src="comm" onclick="setInsightFilter('source','comm',this)">🟠 Community-mapped</button>
+    <!-- Row 1: Source · Location · count badge -->
+    <div class="fbar-row">
+      <div class="fbar-group">
+        <span class="fbar-label">Source</span>
+        <button class="fbar-btn active" data-src="all"  onclick="setInsightFilter('source','all',this)">All</button>
+        <button class="fbar-btn"        data-src="city" onclick="setInsightFilter('source','city',this)">City</button>
+        <button class="fbar-btn"        data-src="comm" onclick="setInsightFilter('source','comm',this)">Community</button>
+      </div>
+      <div class="fbar-divider"></div>
+      <div class="fbar-group">
+        <span class="fbar-label">Location</span>
+        <button class="fbar-btn active"       data-loc="all"        onclick="setInsightFilter('location','all',this)">All</button>
+        <button class="fbar-btn active-nature" data-loc="nature"    onclick="setInsightFilter('location','nature',this)" style="background:#f0fdf4;border-color:#86efac;color:#15803d;">🌿 Nature</button>
+        <button class="fbar-btn active-water"  data-loc="waterfront" onclick="setInsightFilter('location','waterfront',this)" style="background:#f0f9ff;border-color:#7dd3fc;color:#0369a1;">🌊 Waterfront</button>
+      </div>
+      <div id="insight-filter-count" style="margin-left:auto;font-size:11px;color:#64748b;white-space:nowrap;">
+        <strong id="ifc-count">–</strong> benches · <strong id="ifc-districts">–</strong> districts
+      </div>
     </div>
-    <div class="fbar-divider"></div>
-    <div class="fbar-group">
-      <span class="fbar-label">Location</span>
-      <button class="fbar-btn active"       data-loc="all"       onclick="setInsightFilter('location','all',this)">All</button>
-      <button class="fbar-btn active-nature" data-loc="nature"   onclick="setInsightFilter('location','nature',this)" style="background:#f0fdf4;border-color:#86efac;color:#15803d;">🌿 Nature / Park</button>
-      <button class="fbar-btn active-water"  data-loc="waterfront" onclick="setInsightFilter('location','waterfront',this)" style="background:#f0f9ff;border-color:#7dd3fc;color:#0369a1;">🌊 Waterfront</button>
-    </div>
-    <div id="insight-filter-count" style="margin-left:auto;font-size:11px;color:#64748b;white-space:nowrap;">
-      <strong id="ifc-count">–</strong> benches · <strong id="ifc-districts">–</strong> districts
+    <!-- Row 2: Bench Type · Model Group (multi-select) -->
+    <div class="fbar-row">
+      <div class="fbar-group">
+        <span class="fbar-label">Type</span>
+        <button class="fbar-btn active" data-itype="all"   onclick="setInsightFilter('type','all',this)">All</button>
+        <button class="fbar-btn"        data-itype="fixed" onclick="setInsightFilter('type','fixed',this)">Fixed</button>
+        <button class="fbar-btn"        data-itype="removable" onclick="setInsightFilter('type','removable',this)">Removable</button>
+        <button class="fbar-btn"        data-itype="single" onclick="setInsightFilter('type','single',this)">Single-seat</button>
+        <button class="fbar-btn"        data-itype="table" onclick="setInsightFilter('type','table',this)">Table-bench</button>
+      </div>
+      <div class="fbar-divider"></div>
+      <div class="fbar-group" id="insight-model-group">
+        <span class="fbar-label">Model</span>
+        <span style="font-size:10px;color:#94a3b8;">multi-select</span>
+        <button class="fbar-btn" data-imodel="wood_steel" onclick="toggleInsightModel(this)">Wood &amp; steel</button>
+        <button class="fbar-btn" data-imodel="steel"      onclick="toggleInsightModel(this)">Steel frame</button>
+        <button class="fbar-btn" data-imodel="forest"     onclick="toggleInsightModel(this)">Forest / natural</button>
+        <button class="fbar-btn" data-imodel="stone"      onclick="toggleInsightModel(this)">Stone &amp; slab</button>
+        <button class="fbar-btn" data-imodel="brand"      onclick="toggleInsightModel(this)">Named brands</button>
+      </div>
     </div>
   </div>
 
@@ -440,7 +463,8 @@ let benchFeatures = [], districtStats = [], districtBoundaries = null;
 let selectedModelGroups = new Set();
 
 // Insight state
-let insightFilters = { source: 'all', location: 'all' };
+let insightFilters = { source: 'all', location: 'all', type: 'all' };
+let insightModelGroups = new Set(); // multi-select model groups for Insight
 let densityMode    = 'top';   // 'top' | 'bottom'
 let selectedDistrict = null;
 let hoveredDistrict  = null;   // transient hover highlight from chart
@@ -629,30 +653,50 @@ function resetMapFilters() {
 ════════════════════════════════════════════════════════ */
 function setInsightFilter(type, value, btn) {
   insightFilters[type] = value;
-  // Update button styles in the group
+  // Deactivate all buttons in the same group, restore custom non-active styles
   btn.parentElement.querySelectorAll('.fbar-btn').forEach(b => {
     b.classList.remove('active');
-    // Restore non-active color for nature/waterfront btns
-    if (b.dataset.loc === 'nature') { b.style.background='#f0fdf4'; b.style.borderColor='#86efac'; b.style.color='#15803d'; }
+    if (b.dataset.loc === 'nature')     { b.style.background='#f0fdf4'; b.style.borderColor='#86efac'; b.style.color='#15803d'; }
     if (b.dataset.loc === 'waterfront') { b.style.background='#f0f9ff'; b.style.borderColor='#7dd3fc'; b.style.color='#0369a1'; }
-    if (b.dataset.src === 'city') { b.style.background=''; b.style.borderColor=''; b.style.color=''; }
-    if (b.dataset.src === 'comm') { b.style.background=''; b.style.borderColor=''; b.style.color=''; }
+    if (b.dataset.src === 'city' || b.dataset.src === 'comm') { b.style.cssText=''; }
+    if (b.dataset.itype) { b.style.cssText=''; }
   });
   btn.classList.add('active');
-  // Apply distinct active colors
-  if (value === 'city')       btn.style.cssText = 'background:#1d4ed8;color:#fff;border-color:#1d4ed8;';
-  else if (value === 'comm')  btn.style.cssText = 'background:#ea580c;color:#fff;border-color:#ea580c;';
-  else if (value === 'nature') btn.style.cssText = 'background:#16a34a;color:#fff;border-color:#16a34a;';
-  else if (value === 'waterfront') btn.style.cssText = 'background:#0284c7;color:#fff;border-color:#0284c7;';
-  else btn.style.cssText = 'background:#1d4ed8;color:#fff;border-color:#1d4ed8;';
+  // Active accent colors
+  const ACCENT = { city:'#1d4ed8', comm:'#ea580c', nature:'#16a34a', waterfront:'#0284c7' };
+  const col = ACCENT[value] || '#1d4ed8';
+  btn.style.cssText = `background:${col};color:#fff;border-color:${col};`;
 
+  updateInsightCharts();
+}
+
+function toggleInsightModel(btn) {
+  const g = btn.dataset.imodel;
+  if (insightModelGroups.has(g)) {
+    insightModelGroups.delete(g);
+    btn.classList.remove('active');
+    btn.style.cssText = '';
+  } else {
+    insightModelGroups.add(g);
+    btn.classList.add('active');
+    btn.style.cssText = 'background:#1d4ed8;color:#fff;border-color:#1d4ed8;';
+  }
   updateInsightCharts();
 }
 
 /* ════════════════════════════════════════════════════════
    Insight data computation
 ════════════════════════════════════════════════════════ */
+// Map Insight type filter value → getBenchType() string
+const ITYPE_MAP = {
+  fixed:     'Fixed bench',
+  removable: 'Removable bench',
+  single:    'Single-seat bench',
+  table:     'Table-bench combination',
+};
+
 function getFilteredBenches() {
+  const modelActive = insightModelGroups.size > 0;
   return benchFeatures.filter(f => {
     const p   = f.properties;
     const cat = sourceCategory(p.source);
@@ -660,6 +704,14 @@ function getFilteredBenches() {
     if (insightFilters.source === 'comm' && cat !== 'comm') return false;
     if (insightFilters.location === 'nature'     && !p.is_nature)     return false;
     if (insightFilters.location === 'waterfront' && !p.is_waterfront) return false;
+    if (insightFilters.type !== 'all') {
+      const t = getBenchType(p);
+      if (t !== ITYPE_MAP[insightFilters.type]) return false;
+    }
+    if (modelActive) {
+      const grp = getModelGroup(p);
+      if (!grp || !insightModelGroups.has(grp)) return false;
+    }
     return true;
   });
 }
