@@ -184,19 +184,35 @@
       #header h1 { font-size: 14px; }
       #header .sub { display: none; }
       #footer-toggle { display: none; }
-      .tab-btn { padding: 8px 14px; font-size: 12px; }
+      .tab-btn { padding: 8px 16px; font-size: 13px; }
       #sidebar { position: absolute; top: 0; left: 0; width: 100%; max-height: 60vh; z-index: 600; transform: translateY(-100%); transition: transform .25s ease; border-right: none; box-shadow: 0 4px 12px rgba(0,0,0,.2); }
       #sidebar.open { transform: translateY(0); }
       #sidebar-toggle { display: block; }
       #tab-map { position: relative; }
       .kpi-grid { grid-template-columns: repeat(3, 1fr); }
       .row-1-1 { grid-template-columns: 1fr; }
-      #insight-inner { padding: 14px 12px 32px; }
-      #insight-filter-bar { padding: 8px 12px; gap: 10px; }
+      #insight-inner { padding: 12px 10px 32px; }
+      #insight-filter-bar {
+        padding: 8px 10px;
+        gap: 0;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+      }
+      #insight-filter-bar::-webkit-scrollbar { display: none; }
+      .fbar-group { flex-shrink: 0; gap: 4px; }
+      .fbar-group + .fbar-group { margin-left: 10px; }
+      .fbar-divider { flex-shrink: 0; }
+      .fbar-btn { padding: 5px 10px; font-size: 11px; }
+      #insight-filter-count { display: none; }
+      #insight-map { height: 260px; }
+      #insight-heatmap { height: 340px; }
       #footer-grid { grid-template-columns: 1fr; }
     }
     @media (max-width: 480px) {
       .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+      #insight-heatmap { height: 300px; }
     }
   </style>
 </head>
@@ -214,8 +230,8 @@
 
 <!-- ── Tab nav ─────────────────────────────────────────────── -->
 <div id="tabs">
-  <button class="tab-btn active" onclick="showTab('map')">🗺 Map</button>
-  <button class="tab-btn" onclick="showTab('insight')">📊 Insight</button>
+  <button class="tab-btn active" onclick="showTab('map')">Map</button>
+  <button class="tab-btn" onclick="showTab('insight')">Insight</button>
 </div>
 
 <!-- ══ Map tab ════════════════════════════════════════════════ -->
@@ -423,7 +439,8 @@ let heatmapInstance = null, heatmapLayer = null;
 /* ════════════════════════════════════════════════════════
    Main Leaflet map
 ════════════════════════════════════════════════════════ */
-const map = L.map('map').setView([60.192, 24.946], 12);
+const map = L.map('map', { zoomControl: false }).setView([60.192, 24.946], 12);
+L.control.zoom({ position: 'topright' }).addTo(map);
 L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
   attribution: '© OpenStreetMap © CARTO', maxZoom: 19
 }).addTo(map);
@@ -672,8 +689,9 @@ function selectDistrict(district, filteredStats) {
    Mini map (Insight)
 ════════════════════════════════════════════════════════ */
 function initInsightMap() {
-  insightMapInstance = L.map('insight-map', { zoomControl: true, attributionControl: false })
+  insightMapInstance = L.map('insight-map', { zoomControl: false, attributionControl: false })
     .setView([60.20, 24.96], 11);
+  L.control.zoom({ position: 'bottomright' }).addTo(insightMapInstance);
   L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', { maxZoom: 18 })
     .addTo(insightMapInstance);
 
@@ -709,8 +727,9 @@ function initInsightMap() {
    Heatmap (Insight)
 ════════════════════════════════════════════════════════ */
 function initHeatmap() {
-  heatmapInstance = L.map('insight-heatmap', { zoomControl: true, attributionControl: false })
+  heatmapInstance = L.map('insight-heatmap', { zoomControl: false, attributionControl: false })
     .setView([60.20, 24.96], 12);
+  L.control.zoom({ position: 'bottomright' }).addTo(heatmapInstance);
   // OSM standard tiles: parks shown in green, water in blue
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom: 19,
