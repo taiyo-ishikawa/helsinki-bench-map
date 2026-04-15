@@ -647,6 +647,12 @@ function showTab(name) {
   }
 }
 function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
+// Close filter sidebar when tapping the map on mobile
+map.on('click', function() {
+  if (window.innerWidth <= 768) {
+    document.getElementById('sidebar').classList.remove('open');
+  }
+});
 function toggleFooter() {
   const f = document.getElementById('footer');
   f.classList.toggle('visible');
