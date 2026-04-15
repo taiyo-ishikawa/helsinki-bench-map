@@ -86,6 +86,17 @@
     .section-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .6px; color: #94a3b8; margin: 10px 0 4px; }
     #map { flex: 1; height: 100%; }
     #sidebar-toggle { display: none; position: absolute; top: 10px; left: 10px; z-index: 600; background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 8px 12px; font-size: 12px; font-weight: 600; cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,.12); }
+    #sidebar-close { display: none; }
+
+    /* ── Mobile detail modal ───────────────────────────── */
+    #detail-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.4); z-index: 1100; }
+    #detail-overlay.active { display: block; }
+    #detail-modal { display: none; position: fixed; bottom: 0; left: 0; right: 0; background: #fff; border-radius: 16px 16px 0 0; box-shadow: 0 -4px 24px rgba(0,0,0,.18); z-index: 1200; max-height: 70vh; overflow-y: auto; padding: 16px 16px 32px; }
+    #detail-modal.active { display: block; }
+    #detail-modal-handle { width: 40px; height: 4px; background: #cbd5e1; border-radius: 2px; margin: 0 auto 14px; }
+    #detail-modal-close { float: right; font-size: 20px; color: #94a3b8; cursor: pointer; line-height: 1; margin-top: -2px; }
+    #detail-modal-title { font-size: 15px; font-weight: 700; color: #0f172a; margin-bottom: 10px; padding-right: 28px; }
+    #detail-modal-body .detail-table td { font-size: 13px; padding: 6px 6px; }
 
     /* ── Insight tab ───────────────────────────────────── */
     #tab-insight { flex-direction: column; overflow: hidden; }
@@ -229,6 +240,9 @@
       #sidebar { position: absolute; top: 0; left: 0; width: 100%; max-height: 65vh; z-index: 600; transform: translateY(-100%); transition: transform .25s ease; border-right: none; box-shadow: 0 4px 12px rgba(0,0,0,.2); overflow-y: auto; }
       #sidebar.open { transform: translateY(0); }
       #sidebar-toggle { display: block; }
+      #sidebar-close { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px 6px; border-bottom: 1px solid #e2e8f0; margin-bottom: 2px; }
+      #sidebar-close-btn { font-size: 20px; color: #94a3b8; cursor: pointer; line-height: 1; padding: 2px 4px; }
+      #sidebar-close-label { font-size: 12px; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: .6px; }
       #tab-map { position: relative; }
       .panel { padding: 12px 14px; }
       select { font-size: 14px; padding: 8px 10px; }  /* bigger tap target */
@@ -298,7 +312,21 @@
 <!-- ══ Map tab ════════════════════════════════════════════════ -->
 <div id="tab-map" class="tab-content active">
   <button id="sidebar-toggle" onclick="toggleSidebar()">☰ Filters</button>
+  <!-- Mobile detail modal -->
+  <div id="detail-overlay" onclick="closeDetailModal()"></div>
+  <div id="detail-modal">
+    <div id="detail-modal-handle"></div>
+    <div id="detail-modal-title">
+      <span id="detail-modal-close" onclick="closeDetailModal()">✕</span>
+      <span id="detail-modal-name"></span>
+    </div>
+    <div id="detail-modal-body"></div>
+  </div>
   <div id="sidebar">
+    <div id="sidebar-close">
+      <span id="sidebar-close-label">Filters</span>
+      <span id="sidebar-close-btn" onclick="toggleSidebar()">✕</span>
+    </div>
     <div class="panel">
       <div class="panel-title">Data Sources</div>
       <div class="source-grid">
@@ -661,14 +689,32 @@ function buildDetail(props) {
 function showDetail(f) {
   const p = f.properties, cat = sourceCategory(p.source), color = COLOR[cat];
   const name = p.location_name||p.ylre_location_name||p.district||'Bench';
-  document.getElementById('detail-title').innerHTML =
-    `<span id="detail-close" onclick="closeDetail()">✕</span><span style="color:${color}">■</span> ${name}
-     <div style="font-size:10px;font-weight:400;color:#64748b;margin-top:2px">${cat==='city'?'City-registered (YLRE)':'Community-mapped (OSM)'}</div>`;
-  document.getElementById('detail-body').innerHTML = buildDetail(p);
-  document.getElementById('detail-panel').classList.add('visible');
-  document.getElementById('detail-close').onclick = closeDetail;
+  const subtitle = cat==='city'?'City-registered (YLRE)':'Community-mapped (OSM)';
+  const bodyHtml = buildDetail(p);
+
+  if (window.innerWidth <= 768) {
+    // Mobile: show bottom modal sheet
+    document.getElementById('detail-modal-name').innerHTML =
+      `<span style="color:${color}">■</span> ${name}
+       <div style="font-size:11px;font-weight:400;color:#64748b;margin-top:2px">${subtitle}</div>`;
+    document.getElementById('detail-modal-body').innerHTML = bodyHtml;
+    document.getElementById('detail-modal').classList.add('active');
+    document.getElementById('detail-overlay').classList.add('active');
+  } else {
+    // Desktop: show in sidebar panel
+    document.getElementById('detail-title').innerHTML =
+      `<span id="detail-close" onclick="closeDetail()">✕</span><span style="color:${color}">■</span> ${name}
+       <div style="font-size:10px;font-weight:400;color:#64748b;margin-top:2px">${subtitle}</div>`;
+    document.getElementById('detail-body').innerHTML = bodyHtml;
+    document.getElementById('detail-panel').classList.add('visible');
+    document.getElementById('detail-close').onclick = closeDetail;
+  }
 }
 function closeDetail() { document.getElementById('detail-panel').classList.remove('visible'); }
+function closeDetailModal() {
+  document.getElementById('detail-modal').classList.remove('active');
+  document.getElementById('detail-overlay').classList.remove('active');
+}
 
 function toggleSource(cat) {
   hiddenCats.has(cat) ? hiddenCats.delete(cat) : hiddenCats.add(cat);
