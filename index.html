@@ -462,6 +462,13 @@
           <div class="mode-toggle">
             <button class="mode-btn active" id="btn-top"    onclick="setDensityMode('top')">▲ Top 30</button>
             <button class="mode-btn"        id="btn-bottom" onclick="setDensityMode('bottom')">▼ Bottom 30</button>
+            <script>
+              (function() {
+                var n = window.innerWidth <= 768 ? 20 : 30;
+                document.getElementById('btn-top').textContent    = '▲ Top '    + n;
+                document.getElementById('btn-bottom').textContent = '▼ Bottom ' + n;
+              })();
+            </script>
           </div>
         </div>
         <div id="density-wrap"><canvas id="chart-density"></canvas></div>
@@ -1202,10 +1209,11 @@ function updateInsightCharts() {
   document.getElementById('ifc-districts').textContent = dWithData;
 
   /* ── Density bar chart ─────────────────────────────── */
+  const rankN = window.innerWidth <= 768 ? 20 : 30;
   const sorted = [...fStats]
     .filter(s => s.bench_density > 0)
     .sort((a,b) => densityMode==='top' ? b.bench_density-a.bench_density : a.bench_density-b.bench_density)
-    .slice(0, 30);
+    .slice(0, rankN);
 
   const dlabels      = sorted.map(s => s.district);
   const cityValues   = sorted.map(s => s.city_density  || 0);
