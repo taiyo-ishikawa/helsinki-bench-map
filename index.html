@@ -324,6 +324,7 @@
         <label class="checkbox-row"><input type="checkbox" id="filter-nature"      onchange="applyMapFilters()"> 🌿 Nature / Park <span class="badge" id="badge-nature">–</span></label>
         <label class="checkbox-row"><input type="checkbox" id="filter-waterfront"  onchange="applyMapFilters()"> 🌊 Waterfront    <span class="badge" id="badge-waterfront">–</span></label>
         <label class="checkbox-row"><input type="checkbox" id="filter-sidewalk"    onchange="applyMapFilters()"> 🚶 Sidewalk      <span class="badge" id="badge-sidewalk">–</span></label>
+        <label class="checkbox-row"><input type="checkbox" id="filter-cafe"        onchange="applyMapFilters()"> ☕ Near Cafe <span style="font-size:10px;color:#94a3b8;">(100 m)</span> <span class="badge" id="badge-cafe">–</span></label>
       </div>
       <label class="filter-label">Bench Type</label>
       <select id="filter-type" onchange="applyMapFilters()">
@@ -383,6 +384,7 @@
         <button class="fbar-btn" data-loc="nature"     onclick="toggleInsightLocation(this)" style="background:#f0fdf4;border-color:#86efac;color:#15803d;">🌿 Nature</button>
         <button class="fbar-btn" data-loc="waterfront" onclick="toggleInsightLocation(this)" style="background:#f0f9ff;border-color:#7dd3fc;color:#0369a1;">🌊 Waterfront</button>
         <button class="fbar-btn" data-loc="sidewalk"   onclick="toggleInsightLocation(this)" style="background:#f9fafb;border-color:#d1d5db;color:#6b7280;">🚶 Sidewalk</button>
+        <button class="fbar-btn" data-loc="cafe"       onclick="toggleInsightLocation(this)" style="background:#fff7ed;border-color:#fed7aa;color:#c2410c;">☕ Near Cafe</button>
       </div>
       <div id="insight-filter-count" style="margin-left:auto;font-size:11px;color:#64748b;white-space:nowrap;">
         <strong id="ifc-count">–</strong> benches · <strong id="ifc-districts">–</strong> districts
@@ -626,6 +628,7 @@ function buildDetail(props) {
   if (props.is_nature)     badges.push('🌿 Nature/Park');
   if (props.is_waterfront) badges.push('🌊 Waterfront');
   if (props.is_sidewalk)    badges.push('🚶 Sidewalk');
+  if (props.is_near_cafe)   badges.push('☕ Near Cafe');
   if (badges.length) {
     html += `<div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:10px;">`;
     badges.forEach(b => html += `<span style="background:#f1f5f9;border-radius:4px;padding:2px 8px;font-size:11px;color:#475569;">${b}</span>`);
@@ -712,6 +715,7 @@ function applyMapFilters() {
   const nature   = document.getElementById('filter-nature').checked;
   const water    = document.getElementById('filter-waterfront').checked;
   const sidewalk = document.getElementById('filter-sidewalk').checked;
+  const cafe     = document.getElementById('filter-cafe').checked;
   const modelActive = selectedModelGroups.size > 0;
 
   // Check whether a bench passes all filters; individual flags can be overridden
@@ -719,6 +723,7 @@ function applyMapFilters() {
     const chkNature   = opts && 'nature'   in opts ? opts.nature   : nature;
     const chkWater    = opts && 'water'    in opts ? opts.water    : water;
     const chkSidewalk = opts && 'sidewalk' in opts ? opts.sidewalk : sidewalk;
+    const chkCafe     = opts && 'cafe'     in opts ? opts.cafe     : cafe;
     const chkModel    = opts && 'model'    in opts ? opts.model    : modelActive;
     if (hiddenCats.has(cat))                     return false;
     if (dist && p.district !== dist)             return false;
@@ -727,6 +732,7 @@ function applyMapFilters() {
     if (chkNature   && !p.is_nature)             return false;
     if (chkWater    && !p.is_waterfront)         return false;
     if (chkSidewalk && !p.is_sidewalk)           return false;
+    if (chkCafe     && !p.is_near_cafe)          return false;
     if (chkModel) {
       const grp = getModelGroup(p);
       if (!grp || !selectedModelGroups.has(grp)) return false;
@@ -736,7 +742,7 @@ function applyMapFilters() {
 
   cluster.clearLayers();
   let shown = 0;
-  let bNature = 0, bWF = 0, bSW = 0;
+  let bNature = 0, bWF = 0, bSW = 0, bCafe = 0;
   const bModel = { general:0, metal:0, stone:0, organic:0, brand:0 };
 
   for (const {marker, feature, cat} of allMarkers) {
@@ -750,6 +756,7 @@ function applyMapFilters() {
     if (passes(p, cat, {nature:   false})) { if (p.is_nature)     bNature++; }
     if (passes(p, cat, {water:    false})) { if (p.is_waterfront) bWF++;     }
     if (passes(p, cat, {sidewalk: false})) { if (p.is_sidewalk)   bSW++;     }
+    if (passes(p, cat, {cafe:     false})) { if (p.is_near_cafe)  bCafe++;   }
     if (passes(p, cat, {model:    false})) {
       const grp = getModelGroup(p);
       if (grp && grp in bModel) bModel[grp]++;
@@ -760,6 +767,7 @@ function applyMapFilters() {
   document.getElementById('badge-nature').textContent     = bNature.toLocaleString();
   document.getElementById('badge-waterfront').textContent = bWF.toLocaleString();
   document.getElementById('badge-sidewalk').textContent   = bSW.toLocaleString();
+  document.getElementById('badge-cafe').textContent       = bCafe.toLocaleString();
   for (const [grp, cnt] of Object.entries(bModel)) {
     const el = document.getElementById('badge-mg-' + grp);
     if (el) el.textContent = cnt.toLocaleString();
@@ -778,6 +786,7 @@ function resetMapFilters() {
   document.getElementById('filter-nature').checked     = false;
   document.getElementById('filter-waterfront').checked = false;
   document.getElementById('filter-sidewalk').checked   = false;
+  document.getElementById('filter-cafe').checked       = false;
   selectedModelGroups.clear();
   document.querySelectorAll('.model-pill.active').forEach(b => b.classList.remove('active'));
   hiddenCats.clear();
@@ -823,11 +832,13 @@ const LOC_INACTIVE = {
   nature:     'background:#f0fdf4;border-color:#86efac;color:#15803d;',
   waterfront: 'background:#f0f9ff;border-color:#7dd3fc;color:#0369a1;',
   sidewalk:   'background:#f9fafb;border-color:#d1d5db;color:#6b7280;',
+  cafe:       'background:#fff7ed;border-color:#fed7aa;color:#c2410c;',
 };
 const LOC_ACTIVE = {
   nature:     'background:#16a34a;color:#fff;border-color:#16a34a;',
   waterfront: 'background:#0284c7;color:#fff;border-color:#0284c7;',
   sidewalk:   'background:#78716c;color:#fff;border-color:#78716c;',
+  cafe:       'background:#ea580c;color:#fff;border-color:#ea580c;',
 };
 
 function toggleInsightLocation(btn) {
@@ -865,7 +876,8 @@ function getFilteredBenches() {
     if (insightLocations.size > 0) {
       const ok = (insightLocations.has('nature')     && p.is_nature)     ||
                  (insightLocations.has('waterfront') && p.is_waterfront) ||
-                 (insightLocations.has('sidewalk')   && p.is_sidewalk);
+                 (insightLocations.has('sidewalk')   && p.is_sidewalk)   ||
+                 (insightLocations.has('cafe')       && p.is_near_cafe);
       if (!ok) return false;
     }
     if (insightFilters.type !== 'all') {
@@ -1298,7 +1310,7 @@ function rebuildScatter(canvasId, stats, xKey, yKey, xLabel, yLabel) {
    Data loading
 ════════════════════════════════════════════════════════ */
 Promise.all([
-  fetch('helsinki_benches_deduped_en.json?v=7').then(r=>r.json()),
+  fetch('helsinki_benches_deduped_en.json?v=8').then(r=>r.json()),
   fetch('district_stats.json?v=5').then(r=>r.json()).catch(()=>[]),
   fetch('district_boundaries.json?v=2').then(r=>r.json()).catch(()=>null),
 ])
