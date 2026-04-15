@@ -13,19 +13,19 @@ Interactive web map exploring **12,752 public benches** in Helsinki, combining t
 - Marker cluster map of all 12,752 benches (City-registered in blue, Community-mapped in orange)
 - **Filters** (combinable):
   - District (Kaupunginosa) — 60 neighbourhoods
-  - Location character — 🌿 Nature/Park · 🌊 Waterfront · 🚶 Sidewalk (multi-select)
+  - Location character — 🌿 Nature/Park · 🌊 Waterfront · 🚶 Sidewalk · ☕ Near Cafe (multi-select)
   - Bench type — Fixed / Removable / Single-seat / Table-bench
   - Bench model group — 5 YLRE-derived categories (multi-select)
   - Backrest — with / without (OSM data)
 - Filter badge counts update dynamically as other filters change
 - Click any marker for full attribute details (YLRE + OSM attributes shown side-by-side for merged records)
-- Mobile-friendly: filter panel auto-closes on selection
+- Mobile-friendly: filter panel auto-closes on selection; responsive layout for small screens
 
 ### Insight tab
 
 - **Bench density ranking** — stacked bar chart by district (city-registered vs community-mapped), top / bottom 30 toggle
 - **District map** — interactive choropleth; click to see per-district stats
-- **Bench density heatmap** — directly below the density ranking and district map; filters to the selected district on bar/outline click; click again to reset to full city
+- **Bench density heatmap** — full-width, directly below density ranking and district map; zooms to selected district on bar/outline click; click again to reset to full city
 - **Scatter plots** with Pearson r and two-tailed p-value:
   - Population density vs bench density
   - Median income vs bench density
@@ -40,7 +40,7 @@ Interactive web map exploring **12,752 public benches** in Helsinki, combining t
 | Source | Content | License |
 |--------|---------|---------|
 | [Helsinki YLRE via HRI WFS](https://hri.fi/data/en_GB/dataset/helsingin-kaupungin-yleisten-alueiden-rekisteri) | City-registered benches with model, material, type, maintenance class | CC BY 4.0 |
-| [OpenStreetMap / Overpass API](https://overpass-api.de/) | Community-mapped benches (`amenity=bench`) + footway network for sidewalk classification | ODbL 1.0 |
+| [OpenStreetMap / Overpass API](https://overpass-api.de/) | Community-mapped benches (`amenity=bench`), footway network for sidewalk classification, cafes (`amenity=cafe`) for proximity filter | ODbL 1.0 |
 | [Helsinki WFS — YLRE_Viheralue_alue](https://kartta.hel.fi/) | Green area polygons for nature/park classification (4,682 polygons, EPSG:3879) | CC BY 4.0 |
 | [Helsinki WFS — Kaupunginosajako](https://kartta.hel.fi/) | District boundary polygons | CC BY 4.0 |
 | [Helsinki WFS — Postinumeroalue](https://kartta.hel.fi/) | Postal code boundaries for spatial join | CC BY 4.0 |
@@ -60,6 +60,7 @@ add_spatial_attributes.py        is_waterfront — within 50 m of OSM coastline
 fix_osm_nature.py                is_nature — YLRE Viheralue polygon test (STRtree)
 classify_sidewalks.py            is_sidewalk — Overpass footway proximity (10 m buffer)
                                    applied to YLRE street + OSM-only benches; YLRE park always False
+add_cafe_proximity.py            is_near_cafe — within 100 m of OSM cafe (amenity=cafe, cKDTree)
         ↓  helsinki_benches_deduped_en.json  (12,752 benches)
 generate_district_boundaries.py  district_boundaries.json + district_stats.json (bench stats per district)
 add_age_data.py                  population, pop_density, avg_income (Paavo 12f1 hr_mtu),
@@ -85,6 +86,7 @@ add_age_data.py                  population, pop_density, avg_income (Paavo 12f1
 | `is_nature` — within YLRE green area polygon | 8,779 | 68.8 % |
 | `is_sidewalk` — within 10 m of OSM footway (YLRE street + OSM-only; plazas excluded) | 4,458 | 35.0 % |
 | `is_waterfront` — within 50 m of OSM coastline | 1,746 | 13.7 % |
+| `is_near_cafe` — within 100 m of OSM cafe (`amenity=cafe`, 574 cafes) | 1,563 | 12.3 % |
 
 **District statistics** (60 districts total):
 - 45 districts with population, population density, age data, and median income (Statistics Finland Paavo 2023)
@@ -131,15 +133,16 @@ helsinki_benches_deduped_en.json  Processed bench dataset (12,752 features)
 district_stats.json               Per-district statistics (population, income, age, bench counts)
 district_boundaries.json          Simplified district polygons in WGS84
 
-fetch_helsinki_benches.py         Step 1: Data acquisition
-translate_to_english.py           Step 2: Localisation
-deduplicate_benches.py            Step 3: Deduplication
-add_district.py                   Step 4: District assignment
-add_spatial_attributes.py         Step 5: Spatial flags (waterfront — 50 m threshold)
-fix_osm_nature.py                 Step 6: Nature/park classification (YLRE Viheralue STRtree)
-classify_sidewalks.py             Step 7: Sidewalk classification (Overpass footway proximity)
-generate_district_boundaries.py   Step 8: District stats + boundaries
-add_age_data.py                   Step 9: Population, income, and age demographic data
+fetch_helsinki_benches.py         Step 1:  Data acquisition (YLRE + OSM benches)
+translate_to_english.py           Step 2:  Finnish field values → English
+deduplicate_benches.py            Step 3:  Deduplication (5 m threshold, cKDTree)
+add_district.py                   Step 4:  District assignment (point-in-polygon)
+add_spatial_attributes.py         Step 5:  is_waterfront (50 m from OSM coastline)
+fix_osm_nature.py                 Step 6:  is_nature (YLRE Viheralue STRtree)
+classify_sidewalks.py             Step 7:  is_sidewalk (Overpass footway, 10 m buffer)
+add_cafe_proximity.py             Step 8:  is_near_cafe (OSM amenity=cafe, 100 m, cKDTree)
+generate_district_boundaries.py   Step 9:  District stats + boundary GeoJSON
+add_age_data.py                   Step 10: Population, income, and age demographics (Paavo PxWeb)
 ```
 
 ---
