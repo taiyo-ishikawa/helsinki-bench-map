@@ -604,7 +604,11 @@ let heatmapInstance = null, heatmapLayer = null;
    Main Leaflet map
 ════════════════════════════════════════════════════════ */
 const map = L.map('map', { zoomControl: false }).setView([60.192, 24.946], 12);
-L.control.zoom({ position: 'topright' }).addTo(map);
+const zoomCtrl = L.control.zoom({ position: 'topright' }).addTo(map);
+// On mobile, move zoom control to bottom-right so it doesn't overlap the sidebar × button
+if (window.innerWidth <= 768) {
+  zoomCtrl.setPosition('bottomright');
+}
 L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
   attribution: '© OpenStreetMap © CARTO', maxZoom: 19
 }).addTo(map);
