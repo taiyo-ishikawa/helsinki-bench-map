@@ -831,10 +831,6 @@ function applyMapFilters() {
   const tog = document.getElementById('sidebar-toggle');
   if (tog) tog.dataset.count = shown.toLocaleString();
 
-  // Auto-close sidebar on mobile after any filter change
-  if (window.innerWidth <= 768) {
-    document.getElementById('sidebar').classList.remove('open');
-  }
 }
 function resetMapFilters() {
   ['filter-district','filter-type','filter-backrest'].forEach(id => document.getElementById(id).value = '');
