@@ -324,7 +324,7 @@
         <label class="checkbox-row"><input type="checkbox" id="filter-nature"      onchange="applyMapFilters()"> 🌿 Nature / Park <span class="badge" id="badge-nature">–</span></label>
         <label class="checkbox-row"><input type="checkbox" id="filter-waterfront"  onchange="applyMapFilters()"> 🌊 Waterfront    <span class="badge" id="badge-waterfront">–</span></label>
         <label class="checkbox-row"><input type="checkbox" id="filter-sidewalk"    onchange="applyMapFilters()"> 🚶 Sidewalk      <span class="badge" id="badge-sidewalk">–</span></label>
-        <label class="checkbox-row"><input type="checkbox" id="filter-cafe"        onchange="applyMapFilters()"> ☕ Near Cafe <span style="font-size:10px;color:#94a3b8;">(100 m)</span> <span class="badge" id="badge-cafe">–</span></label>
+        <label class="checkbox-row"><input type="checkbox" id="filter-cafe"        onchange="applyMapFilters()"> ☕ Near Cafe <span class="badge" id="badge-cafe">–</span></label>
       </div>
       <label class="filter-label">Bench Type</label>
       <select id="filter-type" onchange="applyMapFilters()">
@@ -518,6 +518,7 @@
       <strong>Nature / Park</strong> — YLRE park layer benches or OSM benches within park/forest polygons (YLRE Viheralue WFS).<br><br>
       <strong>Waterfront</strong> — Within 50 m of the Baltic Sea coastline (OSM coastline data).<br><br>
       <strong>Sidewalk</strong> — Benches within 10 m of an OSM footway, path, pedestrian way, or cycle path open to pedestrians (Overpass API, April 2026). Applied to both YLRE street-registered (<code>YLRE_Katuosat_piste</code>) and OSM-only benches; YLRE park benches (<code>YLRE_Viherosat_piste</code>) are always excluded. This proximity check ensures that plaza and square benches in the Katuosat layer are not misclassified as sidewalk benches. Covers 4,458 benches (35%).<br><br>
+      <strong>Near Cafe</strong> — Benches within 100 m of an OSM cafe (<code>amenity=cafe</code> or <code>amenity=coffee_shop</code>). Cafe locations fetched via Overpass API (574 cafes, April 2026); distances computed in EPSG:3067 (metric) using a scipy cKDTree nearest-neighbour lookup. Covers 1,563 benches (12.3%).<br><br>
       <h3>Bench Model Groups</h3>
       Derived from the <code>ylre_material</code> field in YLRE data. Only city-registered benches carry model information; OSM-only benches and records with blank or unrecognised values are excluded when any model group filter is active. Five groups are defined:<br><br>
       <strong>Wood &amp; Steel</strong> (666 benches) — Helsinki's most widespread public bench type: a wooden seat paired with a durable steel or stainless-steel frame. Models: HKI-D1 (steel-leg street bench, incl. removable variant), D3 (standard accessible bench), D4 (basic single chair), D12 (general bench, wooden seat &amp; steel frame), D13 (general chair, wooden seat &amp; steel frame). Materials: dense pine (<em>mänty</em>) or oak (<em>tammi</em>) seat; hot-dip galvanised and powder-coated steel frame.<br><br>

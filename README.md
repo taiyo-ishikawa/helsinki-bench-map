@@ -86,10 +86,21 @@ add_age_data.py                  population, pop_density, avg_income (Paavo 12f1
 | `is_nature` — within YLRE green area polygon | 8,779 | 68.8 % |
 | `is_sidewalk` — within 10 m of OSM footway (YLRE street + OSM-only; plazas excluded) | 4,458 | 35.0 % |
 | `is_waterfront` — within 50 m of OSM coastline | 1,746 | 13.7 % |
-| `is_near_cafe` — within 100 m of OSM cafe (`amenity=cafe`, 574 cafes) | 1,563 | 12.3 % |
+| `is_near_cafe` — within 100 m of OSM cafe (`amenity=cafe` / `amenity=coffee_shop`, 574 cafes) | 1,563 | 12.3 % |
 
 **District statistics** (60 districts total):
 - 45 districts with population, population density, age data, and median income (Statistics Finland Paavo 2023)
+
+---
+
+## Location flag methodology
+
+| Flag | Method |
+|------|--------|
+| `is_nature` | YLRE park-layer benches (`Viherosat`) are always `True`. OSM-only benches are tested against 4,682 YLRE green area polygons (`YLRE_Viheralue_alue` WFS, EPSG:3879 → WGS84) using a Shapely STRtree point-in-polygon query. |
+| `is_waterfront` | Distance to nearest OSM coastline node (`natural=coastline`) computed in EPSG:3067 (metres) via scipy cKDTree. Threshold: 50 m. |
+| `is_sidewalk` | Distance to nearest OSM footway / path / pedestrian / cycleway (foot permitted) computed in EPSG:3067 via Shapely LineString buffers + STRtree. Threshold: 10 m. Applied to YLRE street benches (`Katuosat`) and OSM-only benches; YLRE park benches are always `False`. Plaza and square benches are correctly excluded because they fall outside the 10 m buffer. |
+| `is_near_cafe` | Distance to nearest OSM cafe node or way centre (`amenity=cafe` / `amenity=coffee_shop`, 574 locations) computed in EPSG:3067 via scipy cKDTree. Threshold: 100 m. |
 
 ---
 
